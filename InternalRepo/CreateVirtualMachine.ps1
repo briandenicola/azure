@@ -7,7 +7,7 @@ if( $WebHookData -ne $null  )
 	$app_id    = Get-AutomationVariable    -Name 'ApplicationId'
 	$tenant_id = Get-AutomationVariable    -Name 'TenantId'
 	$key       = Get-AutomationVariable    -Name 'WebHookKey' 
-	$cert      = Get-AutomationCertificate -Name 'AuthCert'
+	$cert      = Get-AutomationCertificate -Name 'ClassicAuthCert'
 	
 	$WebhookBody = ConvertFrom-Json -InputObject $WebHookData.RequestBody
 	

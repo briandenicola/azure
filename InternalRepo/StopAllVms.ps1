@@ -1,6 +1,6 @@
 $app_id    = Get-AutomationVariable -Name 'ApplicationId'
 $tenant_id = Get-AutomationVariable -Name 'TenantId' 
-$cert      = Get-AutomationCertificate -Name 'AuthCert'
+$cert      = Get-AutomationCertificate -Name 'ClassicAuthCert'
 
 if( !(Test-Path ("cert:\CurrentUser\My\{0}" -f $cert.Thumbprint) ) ) {
     $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("My", "CurrentUser") 
@@ -10,4 +10,4 @@ if( !(Test-Path ("cert:\CurrentUser\My\{0}" -f $cert.Thumbprint) ) ) {
 }		
 
 Login-AzureRmAccount -ServicePrincipal -TenantId $tenant_id -CertificateThumbprint $cert.Thumbprint -ApplicationId $app_id  
-Get-AzureRMVM
+Get-AzureRMVM | Stop-AzureRMVM -Force 
