@@ -1,15 +1,13 @@
 {
-  "if": {
-    "field": "tags",
-    "exists": "false"
-  },
-  "then": {
-    "effect": "append",
-    "details": [
-      {
-        "field": "tags",
-        "value": { "owner": "B. Denicola" }
-      }
-    ]
-  }
+    "if": {
+        "field": "tags",
+        "exists": "false"
+    },
+    "then": {
+        "effect": "append",
+        "details": [{
+            "field": "tags",
+            "value": { "owner": "B. Denicola" }
+        }]
+    }
 }
