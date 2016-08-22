@@ -1,4 +1,8 @@
 $cred = Get-AutomationPSCredential -Name "AutomationCredential"
-	
+
+$rgs = @("BJDRG")
 Add-AzureRmAccount -Credential $cred
-Get-AzureRMVM -ResourceGroupName BJDRG -Name vm1 | Start-AzureRMVM
+
+foreach( $group in $rgs) {
+    Get-AzureRMVM -ResourceGroupName $group | Start-AzureRMVM
+}
