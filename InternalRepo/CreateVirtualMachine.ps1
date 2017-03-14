@@ -3,23 +3,12 @@ param(
 )
 
 if( $WebHookData -ne $null  )
-{
-	$app_id    = Get-AutomationVariable    -Name 'ApplicationId'
-	$tenant_id = Get-AutomationVariable    -Name 'TenantId'
-	$key       = Get-AutomationVariable    -Name 'WebHookKey' 
-	$cert      = Get-AutomationCertificate -Name 'AuthCert'
-	
+{	
 	$WebhookBody = ConvertFrom-Json -InputObject $WebHookData.RequestBody
 	
 	if( $key -ne $WebhookBody.WebHookKey ) { throw "Invalid Key . . ."}
-	if( !(Test-Path ("cert:\CurrentUser\My\{0}" -f $cert.Thumbprint) ) ) {
-	    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("My", "CurrentUser") 
-	    $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-	    $store.Add($cert) 
-	    $store.Close() 	
-	}		
-	
-	Login-AzureRmAccount -ServicePrincipal -TenantId $tenant_id -CertificateThumbprint $cert.Thumbprint -ApplicationId $app_id  
+    $servicePrincipalConnection = Get-AutomationConnection -Name "AzureRunAsConnection"        
+    Login-AzureRmAccount -ServicePrincipal -TenantId $servicePrincipalConnection.TenantId -ApplicationId $servicePrincipalConnection.ApplicationId -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint   
 	
 	$ResourceLocation           = "southcentralus"		
 	$TemplateFileUri            = "https://bjdstorage.blob.core.windows.net/scripts/azuredeploy.json"
