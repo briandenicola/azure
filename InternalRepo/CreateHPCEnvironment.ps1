@@ -26,14 +26,10 @@ if( $WebHookData -ne $null  )
 	$ResourceGroupName          = $WebhookBody.ResourceGroupName
 	
 	$params = @{
-		VmNamePrefix             = $WebhookBody.VmNamePrefix
-		localAdminUsername       = $WebhookBody.LocalAdminUsername
-		localAdminPassword       = $WebhookBody.LocalAdminPassword
-		domainAdminUsername      = $WebhookBody.DomainAdminUsername	
-		domainAdminPassword      = $WebhookBody.DomainAdminPassword
-		domainToJoin             = $WebhookBody.DomainToJoin
-		storageAccountName       = $WebhookBody.StorageAccountName
-		numberOfInstances        = $WebhookBody.NumberOfInstances
+		clusterName             = $WebhookBody.clusterName
+		computerNodeNumber      = $WebhookBody.computerNodeNumber
+		adminUsername       	= $WebhookBody.adminUsername
+		adminPassword      		= $WebhookBody.adminPassword	
 	}
 	
 	$opts = @{
