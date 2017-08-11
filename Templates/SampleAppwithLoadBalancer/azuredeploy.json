@@ -1,0 +1,377 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of storage account"
+      }
+    },
+    "localAdminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin username"
+      }
+    },
+    "localAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password"
+      }
+    },
+    "webVmNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Prefix to use for Web VM names"
+      }
+    },
+    "sqlVmName": {
+      "type": "string",
+      "metadata": {
+        "description": "VM name for SQL Server"
+      }
+    },
+    "domainAdminUsername": {
+      "type": "string",
+      "defaultValue": "manager",
+      "metadata": {
+        "description": "DomainAdmin username"
+      }
+    },
+    "domainAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "DomainAdmin password"
+      }
+    },
+    "domainToJoin": {
+      "type": "string",
+      "defaultValue": "bjdazure.demo",
+      "metadata": {
+        "description": "The FQDN of the AD domain to join"
+      }
+    }
+  },
+  "variables": {
+    "appVnetResourceGroupName": "",
+    "location": "southcentralus",
+    "virtualNetworkName": "",
+    "webSubnetName": "GeneralServers",
+    "sqlSubnetName": "GeneralServers",
+    
+    "webVmSize": "Standard_D1",
+    "webNICPrefix": "[concat(parameters('webVmNamePrefix'), '-nic')]",
+    "webPIPPrefix": "[concat(parameters('webVmNamePrefix'), '-pip')]",
+    "webImageOffer":  "WindowsServer",
+    "webImagePublisher": "MicrosoftWindowsServer",
+    "webImageSKU": "2016-Datacenter",
+    "numberOfInstances": 2,
+    "availabilitySetName": "WebAS",
+
+    "loadBalancerName": "sampleAppLB",
+    
+    "sqlVMSize": "Standard_D2",
+    "sqlNICName": "[concat(parameters('sqlVmName'), '-nic')]",
+    "sqlPIPName": "[concat(parameters('sqlVmName'), '-pip')]",
+    "sqlImagePublisher": "MicrosoftSQLServer",
+    "sqlImageOffer": "SQL2016SP1-WS2016",
+    "sqlImageSku": "SQLDEV",
+    
+    "storageAccountType": "Standard_LRS",
+    
+    "vnetID": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('appVnetResourceGroupName'), '/providers/Microsoft.Network/virtualNetworks/' , variables('virtualNetworkName'))]",
+    "webSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('webSubnetName'))]",
+    "dbSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('sqlSubnetName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('storageAccountName')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "accountType": "[variables('storageAccountType')]"
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('availabilitySetName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {}
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('webNICPrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "nicLoop",
+        "count": "[variables('numberOfInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('webSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [{
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/backendAddressPools/', variables('loadBalancerName'),'-Backend' )]"
+              }]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('sqlNICName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('dbSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('webVmNamePrefix'), copyindex())]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[variables('numberOfInstances')]"
+      },
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('webNICPrefix'), copyindex())]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[variables('webVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('webVmNamePrefix'), copyIndex())]",
+          "adminUsername": "[parameters('localAdminUsername')]",
+          "adminPassword": "[parameters('localAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('webImagePublisher')]",
+            "offer": "[variables('webImageOffer')]",
+            "sku": "[variables('webImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/','webosdisk', copyindex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('webNICPrefix'),copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+             "enabled": "true",
+             "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name":  "[parameters('sqlVmName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('sqlNICName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('sqlVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('sqlVmName')]",
+          "adminUsername": "[parameters('localAdminUsername')]",
+          "adminPassword": "[parameters('localAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('sqlImagePublisher')]",
+            "offer": "[variables('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSku')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/','sqlosdisk', '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('sqlNICName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+             "enabled": "true",
+             "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('webVmNamePrefix'), copyindex(), '/joindomain')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('webVmNamePrefix'), copyindex())]"
+      ],
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[variables('numberOfInstances')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "Name": "[parameters('domainToJoin')]",
+          "OUPath": "",
+          "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainAdminUsername'))]",
+          "Restart": "true",
+          "Options": 3
+        },
+        "protectedsettings": {
+          "Password": "[parameters('domainAdminPassword')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('sqlVmName'), '/joindomain')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('sqlVmName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "Name": "[parameters('domainToJoin')]",
+          "OUPath": "",
+          "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainAdminUsername'))]",
+          "Restart": "true",
+          "Options": 3
+        },
+        "protectedsettings": {
+          "Password": "[parameters('domainAdminPassword')]"
+        }
+      }
+    },
+    {
+        "type": "Microsoft.Network/loadBalancers",
+        "name": "[variables('loadBalancerName')]",
+        "apiVersion": "2016-03-30",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "frontendIPConfigurations": [
+                {
+                    "name": "LoadBalancerFrontEnd",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                          "id": "[variables('webSubnetRef')]"
+                        }
+                    }
+                }
+            ],
+            "backendAddressPools": [
+                {
+                    "name": "[concat(variables('loadBalancerName'),'-Backend')]"
+                }
+            ],
+            "loadBalancingRules": [
+                {
+                    "name": "HTTP",
+                    "properties": {
+                        "frontendIPConfiguration": {
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/frontendIPConfigurations/loadBalancerFrontEnd')]"
+                        },
+                        "frontendPort": 80,
+                        "backendPort": 80,
+                        "enableFloatingIP": false,
+                        "idleTimeoutInMinutes": 4,
+                        "protocol": "Tcp",
+                        "loadDistribution": "Default",
+                        "backendAddressPool": {
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/backendAddressPools/', variables('loadBalancerName'),'-Backend' )]"
+                        },
+                        "probe": {
+                            "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/probes/DefaultProbe')]"
+                        }
+                    }
+                }
+            ],
+            "probes": [
+                {
+                    "name": "DefaultProbe",
+                    "properties": {
+                        "protocol": "Http",
+                        "port": 80,
+                        "requestPath": "/default.aspx",
+                        "intervalInSeconds": 5,
+                        "numberOfProbes": 2
+                    }
+                }
+            ],
+            "inboundNatRules": [],
+            "outboundNatRules": [],
+            "inboundNatPools": []
+        },
+        "resources": [],
+        "dependsOn": [
+        ]
+    }
+  ]
+}

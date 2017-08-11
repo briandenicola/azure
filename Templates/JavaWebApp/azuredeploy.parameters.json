@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentTypes": {
+      "type": "array",
+      "value": [
+        {
+          "name": "AS-D01-App01",
+          "scaleProfile": "M"
+        }
+      ]
+    },
+    "environments": {
+      "type": "array",
+      "value": [
+        {
+          "name": "Slot1",
+          "type": "AS-D01-App01"
+        },
+        {
+          "name": "Slot2",
+          "type": "AS-D01-App01"
+        },
+        {
+          "name": "Slot3",
+          "type": "AS-D01-App01"
+        }
+      ]
+    }
+  }
+}

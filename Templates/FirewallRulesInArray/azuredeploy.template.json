@@ -1,0 +1,49 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL server for Azure SQL"
+      }
+    },
+    "administratorLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password of the admin user of the SQL Server"
+      }
+    },
+    "sqlServerFirewallRules": {
+      "type": "array"
+    }
+  },
+  "variables": {
+  },
+  "resources": [
+    {
+      "name": "[parameters('sqlServerName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "kind": "v12.0",
+      "tags": {},
+      "apiVersion": "2014-04-01-preview",
+      "properties": {
+        "administratorLogin": "[concat('sa-', parameters('sqlServerName'))]",
+        "administratorLoginPassword": "[parameters('administratorLoginPassword')]"
+      },
+      "resources": [
+        ~~~FirewallRules~~~
+      ]
+    }
+  ],
+  "outputs": {
+
+  }
+
+}
+
+
+
+
+

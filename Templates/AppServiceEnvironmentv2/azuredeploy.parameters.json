@@ -1,0 +1,30 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "aseName": {
+            "value": "bjdase003"
+        },
+        "aseLocation": {
+            "value": "South Central US"
+        },
+        "internalLoadBalancingMode": {
+            "value": 3
+        },
+        "dnsSuffix": {
+            "value": "ase.denicolafamily.com"
+        },
+        "siteName": {
+            "value": "bjdweb001"
+        },
+        "appServicePlanName": {
+            "value": "ASEServicePlan001"
+        },
+        "pricingTier": {
+            "value": "1"
+        },
+        "capacity": {
+            "value": 1
+        }
+    }
+}

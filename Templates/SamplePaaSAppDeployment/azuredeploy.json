@@ -1,0 +1,340 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "cosmoDbName": {
+            "type": "String"
+        },
+        "logicAppName": {
+            "type": "String"
+        },
+
+        "servicePlanName": {
+            "type": "String"
+        },
+        "siteName": {
+            "type": "String"
+        },
+        "queueNameSpaceName": {
+            "type": "String"
+        },
+        "demoQueueName": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "kind": "MongoDB",
+            "name": "[parameters('cosmoDbName')]",
+            "apiVersion": "2016-03-31",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard"
+            },
+            "kind": "Messaging",
+            "name": "[parameters('queueNameSpaceName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "status": "Active",
+                "serviceBusEndpoint": "[concat('https://', parameters('queueNameSpaceName'),'.servicebus.windows.net:443/')]",
+                "enabled": true
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "name": "[parameters('demoQueueName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "maxSizeInMegabytes": 2048,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "01:00:00",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "isAnonymousAccessible": false,
+                "status": "Active",
+                "supportOrdering": false,
+                "countDetails": {
+                    "activeMessageCount": 0,
+                    "deadLetterMessageCount": 0,
+                    "scheduledMessageCount": 0,
+                    "transferMessageCount": 0,
+                    "transferDeadLetterMessageCount": 0
+                },
+                "autoDeleteOnIdle": "10675199.02:48:05.4775807",
+                "enablePartitioning": true,
+                "enableExpress": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('queueNameSpaceName'))]"
+            ]
+        },
+        {
+            "name": "[parameters('servicePlanName')]",
+            "apiVersion": "2016-09-01",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "name": "[parameters('servicePlanName')]",
+                "numberOfWorkers": 1,
+                "reserved": true,
+                "workerSizeId": "1"
+            },
+            "sku": {
+                "name": "S1",
+                "tier": "Standard"
+            },
+            "kind": "linux"
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "name": "[parameters('siteName')]",
+            "apiVersion": "2016-03-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+            },
+            "properties": {
+                "name": "[parameters('siteName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName'))]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2016-03-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "tags": {},
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
+                    ],
+                    "properties": {
+                        "DOCKER_CUSTOM_IMAGE_NAME" : "bjd145/docdb-aspnetcore",
+                        "PORT": 5000,
+                        "PrimaryKey": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmoDbName')), providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]).primaryMasterKey]"
+                    }
+                },
+                {
+                    "apiVersion": "2016-03-01",
+                    "name": "web",
+                    "type": "config",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
+                    ],
+                    "tags": { },
+                    "properties": {
+                        "linuxFxVersion": "DOCKER|BJD145/DOCDB-ASPNETCORE"
+                    }
+                }
+            ],
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName'))]"
+            ]
+        },
+        { 
+            "type": "Microsoft.Web/Connections", 
+            "apiVersion": "2016-06-01", 
+            "name": "documentdb", 
+            "location": "[resourceGroup().location]", 
+            "properties": { 
+                "api": { 
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'documentdb')]" 
+                }, 
+                "displayName": "documentdb", 
+                "parameterValues": { 
+                    "databaseAccount": "[parameters('cosmoDbName')]",
+                    "accessKey": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmoDbName')), providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]).primaryMasterKey]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmoDbName'))]"
+            ]
+        },
+        { 
+            "type": "Microsoft.Web/Connections", 
+            "apiVersion": "2016-06-01", 
+            "name": "servicebus", 
+            "location": "[resourceGroup().location]", 
+            "properties": { 
+                "api": { 
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'servicebus')]" 
+                }, 
+                "displayName": "servicebus", 
+                "parameterValues": { 
+                    "connectionString" : "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),parameters('queueNameSpaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('queueNameSpaceName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('logicAppName')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "manual": {
+                            "type": "Request",
+                            "kind": "Http",
+                            "inputs": {
+                                "schema": {
+                                    "properties": {
+                                        "age": {
+                                            "type": "number"
+                                        },
+                                        "firstName": {
+                                            "type": "string"
+                                        },
+                                        "lastName": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "For_each": {
+                            "foreach": "@body('Get_messages_from_a_queue_(peek-lock)')",
+                            "actions": {
+                                "Create_or_update_document": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "a": "@triggerBody()?['age']",
+                                            "f": "@triggerBody()?['firstName']",
+                                            "id": "@item()?['MessageId']",
+                                            "l": "@triggerBody()?['lastName']"
+                                        },
+                                        "host": {
+                                            "api": {
+                                                "runtimeUrl": "https://logic-apis-westus2.azure-apim.net/apim/documentdb"
+                                            },
+                                            "connection": {
+                                                "name": "@parameters('$connections')['documentdb']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/dbs/@{encodeURIComponent('wordsdb')}/colls/@{encodeURIComponent('wordsCollection')}/docs"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Get_messages_from_a_queue_(peek-lock)": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Get_messages_from_a_queue_(peek-lock)": {
+                            "runAfter": {
+                                "Send_message": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "api": {
+                                        "runtimeUrl": "https://logic-apis-westus2.azure-apim.net/apim/servicebus"
+                                    },
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent('demo')}/messages/batch/peek",
+                                "queries": {
+                                    "maxMessageCount": 20,
+                                    "queueType": "Main"
+                                }
+                            }
+                        },
+                        "Send_message": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "ContentData": "@{base64(triggerBody())}",
+                                    "Properties": {
+                                        "f": "@triggerBody()?['firstName']"
+                                    }
+                                },
+                                "host": {
+                                    "api": {
+                                        "runtimeUrl": "https://logic-apis-westus2.azure-apim.net/apim/servicebus"
+                                    },
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/@{encodeURIComponent('demo')}/messages",
+                                "queries": {
+                                    "systemProperties": "None"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "documentdb": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', 'documentdb')]",
+                                "connectionName": "documentdb",
+                                "id": "[reference('Microsoft.Web/connections/documentdb', '2016-06-01').api.id]"
+                            },
+                            "servicebus": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', 'servicebus')]",
+                                "connectionName": "servicebus",
+                                "id": "[reference('Microsoft.Web/connections/servicebus', '2016-06-01').api.id]"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {
+    }
+}

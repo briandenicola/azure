@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         "cosmoDbName": {
+            "Value": "bjddb005"
+        },
+        "logicAppName": {
+            "Value": "bjdlogicapp005"
+        },
+        "servicePlanName": {
+            "Value": "BjdMgmtUIServicePlan005"
+        },
+        "siteName": {
+            "Value": "bjdmgmtui005"
+        },
+        "queueNameSpaceName": {
+            "Value": "bjdqueue005"
+        },
+        "demoQueueName": {
+            "Value": "bjdqueue005/demo"
+        }
+    }
+}

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0", 
+  "outputs": {},
+  "parameters": {
+    "_accountId": {
+      "type": "string"
+    },
+    "_objectId": {
+      "type": "string"
+    },
+    "environmentTypes": {
+      "type": "array"
+    },
+    "environments": {
+      "type": "array"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2016-09-01",
+      "copy": {
+        "count": "[length(parameters('environmentTypes'))]",
+        "name": "environmentTypes"
+      },
+      "location": "[resourceGroup().location]",
+      "name": "[concat(parameters('environmentTypes')[copyIndex()].name,'-plan')]",
+      "properties": {
+        "name": "[concat(parameters('environmentTypes')[copyIndex()].name,'-plan')]",
+        "numberOfWorkers": "[variables('scaleProfile')[parameters('environmentTypes')[copyIndex()].scaleProfile].numberOfWorkers]",
+        "workerSize": "[variables('scaleProfile')[parameters('environmentTypes')[copyIndex()].scaleProfile].workerSize]"
+      },
+      "sku": "[variables('scaleProfile')[parameters('environmentTypes')[copyIndex()].scaleProfile].sku]",
+      "type": "Microsoft.Web/serverfarms"
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "copy": {
+        "count": "[length(parameters('environmentTypes'))]",
+        "name": "environmentTypesSites"
+      },
+      "dependsOn": [
+        "[concat(parameters('environmentTypes')[copyIndex()].name,'-plan')]"
+      ],
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('environmentTypes')[copyIndex()].name]",
+      "properties": {
+        "name": "[parameters('environmentTypes')[copyIndex()].name]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', concat(parameters('environmentTypes')[copyIndex()].name,'-plan'))]"
+      },
+      "type": "Microsoft.Web/sites",
+      "resources": [
+          {
+              "apiVersion": "2016-08-01",
+              "name": "web",
+              "type": "config",
+              "dependsOn": [
+                  "[concat('Microsoft.Web/sites/', parameters('environmentTypes')[copyIndex()].name)]"
+              ],
+              "tags": {
+              },
+              "properties": {
+                  "JavaVersion": "1.8",
+                  "JavaContainer": "TOMCAT",
+                  "JavaContainerVersion" : "7.0"
+              }
+          }
+      ]
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "copy": {
+        "count": "[length(parameters('environments'))]",
+        "name": "environments"
+      },
+      "dependsOn": [
+        "[concat(parameters('environments')[copyIndex()].type,'-plan')]",
+        "[parameters('environments')[copyIndex()].type]"
+      ],
+      "location": "[resourceGroup().location]",
+      "name": "[concat(parameters('environments')[copyIndex()].type,'/',parameters('environments')[copyIndex()].name)]",
+      "properties": {},
+      "type": "Microsoft.Web/Sites/Slots",
+      "resources": [
+          {
+              "apiVersion": "2016-08-01",
+              "name": "web",
+              "type": "config",
+              "dependsOn": [
+                  "[concat('Microsoft.Web/sites/',  parameters('environments')[copyIndex()].type, '/Slots/', parameters('environments')[copyIndex()].name)]"
+              ],
+              "tags": {
+              },
+              "properties": {
+                  "JavaVersion": "1.8",
+                  "JavaContainer": "TOMCAT",
+                  "JavaContainerVersion" : "7.0"
+              }
+          }
+      ]
+    }
+  ],
+  "variables": {
+    "scaleProfile": {
+      "L": {
+        "numberOfWorkers": 1,
+        "sku": {
+          "capacity": 1,
+          "family": "S",
+          "name": "S1",
+          "size": "S1",
+          "tier": "Standard"
+        },
+        "workerSize": "1"
+      },
+      "M": {
+        "numberOfWorkers": 1,
+        "sku": {
+          "capacity": 1,
+          "family": "S",
+          "name": "S1",
+          "size": "S1",
+          "tier": "Standard"
+        },
+        "workerSize": "1"
+      },
+      "S": {
+        "numberOfWorkers": 1,
+        "sku": {
+          "capacity": 0,
+          "family": "F",
+          "name": "F1",
+          "size": "F1",
+          "tier": "Free"
+        },
+        "workerSize": "0"
+      }
+    }
+  }
+}
