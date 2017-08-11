@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "nsgFlowLog",
+      "type": "blobTrigger",
+      "direction": "in",
+      "path": "insights-logs-networksecuritygroupflowevent/{name}",
+      "connection": "bjddiagsa002_STORAGE"
+    }
+  ],
+  "disabled": false
+}

@@ -1,0 +1,135 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "functionsStorageAccount": {
+            "type": "String"
+        },
+        "servicePlanName": {
+            "type": "String"
+        },
+        "siteName": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('functionsStorageAccount')]",
+            "apiVersion": "2016-01-01",
+            "location": "southcentralus",
+            "tags": {},
+            "scale": null,
+            "properties": {},
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic",
+                "size": "Y1",
+                "family": "Y",
+                "capacity": 0
+            },
+            "kind": "functionapp",
+            "name": "[parameters('servicePlanName')]",
+            "apiVersion": "2016-09-01",
+            "location": "South Central US",
+            "scale": null,
+            "properties": {
+                "name": "[parameters('servicePlanName')]"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp",
+            "name": "[parameters('siteName')]",
+            "apiVersion": "2016-08-01",
+            "location": "South Central US",
+            "scale": null,
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('siteName'),'.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('siteName'),'.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount'))]"
+            ],
+            "resources": [
+                {
+                    "apiVersion": "2016-08-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "tags": {},
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', parameters('siteName'))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount'))]"
+                    ],
+                    "properties": {
+                        "customerId": "",
+                        "sharedKey": "",
+                        "logName": "NSGFlowLogs",
+                        "AzureWebJobsStorage" : "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('functionsStorageAccount'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" : "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('functionsStorageAccount'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "WEBSITE_CONTENTSHARE": "[parameters('functionsStorageAccount')]",
+                        "AzureWebJobsDashboard" : "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('functionsStorageAccount'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "FUNCTIONS_EXTENSION_VERSION" : "~1"
+                    }
+                },
+                { 
+                    "type": "config",
+                    "name": "web",
+                    "apiVersion": "2016-08-01",
+                    "location": "South Central US",
+                    "scale": null,
+                    "properties": {
+                        "numberOfWorkers": 1,
+                        "defaultDocuments": [
+                            "index.html"
+                        ],
+                        "publishingUsername": "$bjdnsgflowlogs",
+                        "managedPipelineMode": "Integrated",
+                        "virtualApplications": [
+                            {
+                                "virtualPath": "/",
+                                "physicalPath": "site\\wwwroot",
+                                "preloadEnabled": false,
+                                "virtualDirectories": null
+                            }
+                        ],
+                        "cors": {
+                            "allowedOrigins": [
+                                "https://functions.azure.com",
+                                "https://functions-staging.azure.com",
+                                "https://functions-next.azure.com"
+                            ]
+                        }
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('siteName'))]"
+                    ]
+                }                
+            ]
+        }
+    ]
+}
