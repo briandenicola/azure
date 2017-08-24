@@ -1,7 +1,7 @@
 param(
-	[string] $ResourceLocation = "southcentralus",
-    [string] $SubscriptionName = "DevSub02",
-	[string] $VNet_IP_Range = "10.4.0.0/16", 
+	[string] $ResourceLocation  = "southcentralus",
+    [string] $SubscriptionName  = "DevSub02",
+	[string] $VNet_IP_Range     = "10.4.0.0/16", 
 	[string] $Mgmt_Subnet_Range = "10.4.200.0/24"
 )
 
