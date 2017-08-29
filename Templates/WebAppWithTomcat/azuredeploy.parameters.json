@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentTypes": {
+      "type": "array",
+      "value": [
+        {
+          "name": "BJD-ASP-D01",
+          "scaleProfile": "M"
+        }
+      ]
+    },
+    "environments": {
+      "type": "array",
+      "value": [
+        {
+          "name": "WA-Slot1",
+          "type": "BJD-ASP-D01"
+        },
+        {
+          "name": "WA-Slot2",
+          "type": "BJD-ASP-D01"
+        },
+        {
+          "name": "WA-Slot3",
+          "type": "BJD-ASP-D01"
+        }
+      ]
+    }
+  }
+}
