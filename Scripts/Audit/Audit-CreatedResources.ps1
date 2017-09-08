@@ -74,7 +74,7 @@ $selectOpts = @(
     'CorrelationId'
 )
 $createdResources = $logs | 
-                Where-Object { $_.OperationName -imatch 'write' -and $_.EventChannels -eq 'Operation' } |
+                Where-Object { $_.OperationName -imatch 'write' -and $_.EventChannels -imatch 'Operation' } |
                 Select-Object $selectOpts
 
 
