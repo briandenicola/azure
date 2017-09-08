@@ -1,0 +1,43 @@
+{
+  "apiVersion": "vlabs",
+  "properties": {
+    "orchestratorProfile": {
+      "orchestratorType": "Kubernetes",
+      "orchestratorVersion": "1.7.1"
+    },
+    "masterProfile": {
+      "count": 1,
+      "dnsPrefix": "bjdk8s",
+      "vmSize": "Standard_DS2_v2",
+      "OSDiskSizeGB": 64,
+      "storageProfile" : "ManagedDisks",
+      "vnetSubnetId": "/subscriptions/[]/resourceGroups/[]/providers/Microsoft.Network/virtualNetworks/[]/subnets/KubeMasters",
+      "firstConsecutiveStaticIP": "10.2.10.10" 
+    },
+    "agentPoolProfiles": [
+      {
+        "name": "agent",
+        "count": 1,
+        "vmSize": "Standard_DS2_v2",
+        "OSDiskSizeGB": 64,
+        "storageProfile" : "ManagedDisks",
+        "vnetSubnetId": "/subscriptions/[]/resourceGroups/[]/providers/Microsoft.Network/virtualNetworks/[]/subnets/KubeAgents",
+        "availabilityProfile": "AvailabilitySet"
+      }
+    ],
+    "linuxProfile": {
+      "adminUsername": "manager",
+      "ssh": {
+        "publicKeys": [
+          {
+            "keyData": ""
+          }
+        ]
+      }
+    },
+    "servicePrincipalProfile": {
+      "servicePrincipalClientID": "",
+      "servicePrincipalClientSecret": ""
+    }
+  }
+}
