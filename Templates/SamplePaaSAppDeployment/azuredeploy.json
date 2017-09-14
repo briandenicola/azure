@@ -133,6 +133,7 @@
                     "properties": {
                         "DOCKER_CUSTOM_IMAGE_NAME" : "bjd145/docdb-aspnetcore",
                         "PORT": 5000,
+                        "DocDbUri": "[concat('https://', parameters('cosmoDbName'), '.documents.azure.com/')]", 
                         "PrimaryKey": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmoDbName')), providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]).primaryMasterKey]"
                     }
                 },
