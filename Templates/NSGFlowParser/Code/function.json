@@ -1,12 +1,11 @@
 {
   "bindings": [
     {
-      "name": "nsgFlowLog",
-      "type": "blobTrigger",
+      "name": "myTimer",
+      "type": "timerTrigger",
       "direction": "in",
-      "path": "insights-logs-networksecuritygroupflowevent/{name}",
-      "connection": "bjddiagsa002_STORAGE"
+      "schedule": "0 0 * * * *"
     }
   ],
-  "disabled": false
+  "disabled": true
 }

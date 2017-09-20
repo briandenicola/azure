@@ -3,16 +3,40 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "functionsStorageAccount": {
-            "type": "String"
+            "type": "string"
         },
         "servicePlanName": {
-            "type": "String"
+            "type": "string"
         },
         "siteName": {
-            "type": "String"
+            "type": "string"
+        },
+        "nsgStorageAccount" :{
+            "type": "string"
+        },
+        "sourceCodeRepositoryURL": {
+            "type": "string",
+            "defaultValue": "https://github.com/bjd145/Azure/tree/master/Templates/NSGFlowParser/Code",
+            "metadata": {
+                "description": "Source code repository URL"
+            }
+        },
+        "sourceCodeBranch": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "Sourcecode Repo branch"
+            }
         }
     },
-    "variables": {},
+    "variables": {
+        "NSGFlowLog" : "",
+        "AzureSubscription" : "",
+        "NSGResourceGroup" : "",
+        "NSGRules" : "",
+        "customerId": "",
+        "sharedKey": ""
+    },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
@@ -86,9 +110,14 @@
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount'))]"
                     ],
                     "properties": {
-                        "customerId": "",
-                        "sharedKey": "",
+                        "NSGFlowLog" : "[variables('NSGFlowLog')]",
+                        "AzureSubscription" : "[variables('AzureSubscription')]",
+                        "NSGResourceGroup" : "[variables('NSGResourceGroup')]",
+                        "NSGRules" : "[variables('NSGRules')]",
+                        "customerId": "[variables('customerId')]",
+                        "sharedKey": "[variables('sharedKey')]",
                         "logName": "NSGFlowLogs",
+                        "NSGStorageAccount" : "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('nsgStorageAccount'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('nsgStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
                         "AzureWebJobsStorage" : "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('functionsStorageAccount'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
                         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" : "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('functionsStorageAccount'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('functionsStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
                         "WEBSITE_CONTENTSHARE": "[parameters('functionsStorageAccount')]",
@@ -128,7 +157,21 @@
                     "dependsOn": [
                         "[resourceId('Microsoft.Web/sites', parameters('siteName'))]"
                     ]
-                }                
+                },
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "2015-08-01",
+                    "name": "web",
+                    "properties": {
+                      "RepoUrl": "[parameters('sourceCodeRepositoryURL')]",
+                      "branch": "[parameters('sourceCodeBranch')]",
+                      "IsManualIntegration": "true"
+                    },
+                    "dependsOn": [
+                      "[resourceId('Microsoft.Web/sites/', parameters('siteName'))]",
+                      "[resourceId('Microsoft.Web/Sites/config', parameters('siteName'), 'appsettings')]"
+                    ]
+                  }           
             ]
         }
     ]
