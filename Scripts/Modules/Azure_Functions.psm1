@@ -1,4 +1,35 @@
-﻿#https://blogs.technet.microsoft.com/paulomarques/2016/04/05/working-with-azure-rest-apis-from-powershell-getting-page-and-block-blob-information-from-arm-based-storage-account-sample-script/
+﻿#https://gallery.technet.microsoft.com/scriptcenter/Easily-obtain-AccessToken-3ba6e593
+function Get-AzureRmCachedAccessToken()
+{
+  $ErrorActionPreference = 'Stop'
+  
+  if(-not (Get-Module AzureRm.Profile)) {
+    Import-Module AzureRm.Profile
+  }
+  $azureRmProfileModuleVersion = (Get-Module AzureRm.Profile).Version
+  # refactoring performed in AzureRm.Profile v3.0 or later
+  if($azureRmProfileModuleVersion.Major -ge 3) {
+    $azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    if(-not $azureRmProfile.Accounts.Count) {
+      Write-Error "Ensure you have logged in before calling this function."    
+    }
+  } else {
+    # AzureRm.Profile < v3.0
+    $azureRmProfile = [Microsoft.WindowsAzure.Commands.Common.AzureRmProfileProvider]::Instance.Profile
+    if(-not $azureRmProfile.Context.Account.Count) {
+      Write-Error "Ensure you have logged in before calling this function."    
+    }
+  }
+  
+  $currentAzureContext = Get-AzureRmContext
+  $profileClient = New-Object Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient($azureRmProfile)
+  Write-Debug ("Getting access token for tenant" + $currentAzureContext.Subscription.TenantId)
+  $token = $profileClient.AcquireAccessToken($currentAzureContext.Subscription.TenantId)
+  return $token.AccessToken
+}
+
+
+#https://blogs.technet.microsoft.com/paulomarques/2016/04/05/working-with-azure-rest-apis-from-powershell-getting-page-and-block-blob-information-from-arm-based-storage-account-sample-script/
 function Get-AzureRMAuthToken {
    param(
        [Parameter(Mandatory=$true)] $ApiEndpointUri, 
