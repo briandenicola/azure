@@ -1,5 +1,5 @@
 ﻿#https://gallery.technet.microsoft.com/scriptcenter/Easily-obtain-AccessToken-3ba6e593
-function Get-AzureRmCachedAccessToken()
+function Get-AzureRmCachedAccessToken
 {
   $ErrorActionPreference = 'Stop'
   
@@ -294,4 +294,4 @@ function Get-AzureRDPFiles {
     }
 }
 
-Export-ModuleMember -Function  Get-AzureRMASEInternalIpAddress, Get-AzureRDPFiles, Send-FileToAzure, Set-AzureRMVnetDNSServer, Get-AzureRMVMssIpAddress, Get-AzureRMVMIpAddress, Install-WinRmCertificate, Connect-ToAzureVMviaSSH, Get-AzureIPRange
+Export-ModuleMember -Function  Get-AzureRmCachedAccessToken, Get-AzureRMASEInternalIpAddress, Get-AzureRDPFiles, Send-FileToAzure, Set-AzureRMVnetDNSServer, Get-AzureRMVMssIpAddress, Get-AzureRMVMIpAddress, Install-WinRmCertificate, Connect-ToAzureVMviaSSH, Get-AzureIPRange
