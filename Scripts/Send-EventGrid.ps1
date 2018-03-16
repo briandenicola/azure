@@ -7,7 +7,7 @@ param(
 
 #$p = New-Object PSOBject -Property @{
 #    firstName = "Joe"
-#    lastName = "Smieth"
+#    lastName = "Smith"
 #}
 #$person = New-Object PSObject -Property @{
 #    title = "Person"

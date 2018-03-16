@@ -1,0 +1,265 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "cosmosDbAccountName": {
+            "type": "string"
+        },
+        "LogicAppName": {
+            "type": "string"
+        },
+        "eventGridTopicName": {
+            "type": "string"
+        },
+        "eventGridSubscriptionName": {
+            "type": "string",
+            "defaultValue": "LogicApps"
+        }
+    },
+    "variables": {
+        "documentdb_connection": "documentdb",
+        "event_grid_location": "centralus"
+    },
+    "resources": [
+        {
+            "name": "[parameters('eventGridTopicName')]",
+            "type": "Microsoft.EventGrid/topics",
+            "location": "[variables('event_grid_location')]",
+            "apiVersion": "2018-01-01"
+        },
+        {
+            "name": "[concat(parameters('eventGridTopicName'), '/Microsoft.EventGrid/', parameters('eventGridSubscriptionName'))]",
+            "type": "Microsoft.EventGrid/topics/providers/eventSubscriptions",
+            "location": "[variables('event_grid_location')]",
+            "apiVersion": "2018-01-01",
+            "properties": {
+                "destination": {
+                    "endpointType": "WebHook",
+                    "properties": {
+                        "endpointUrl": "[listCallbackURL(concat(resourceId('Microsoft.Logic/workflows/', parameters('logicAppName')), '/triggers/manual'), '2016-06-01').value]"
+                    }
+                },
+                "filter": {
+                    "includedEventTypes": [
+                        "All"
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[parameters('eventGridTopicName')]",
+                "[parameters('LogicAppName')]"
+            ]
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "kind": "GlobalDocumentDB",
+            "name": "[parameters('cosmosDbAccountName')]",
+            "apiVersion": "2015-04-08",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "defaultExperience": "DocumentDB"
+            },
+            "scale": null,
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                },
+                "name": "[parameters('cosmosDbAccountName')]"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('LogicAppName')]",
+            "apiVersion": "2017-07-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "manual": {
+                            "type": "Request",
+                            "kind": "EventGrid",
+                            "inputs": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "body": {
+                                                    "items": {
+                                                        "properties": {
+                                                            "data": {
+                                                                "properties": {
+                                                                    "properties": {
+                                                                        "properties": {
+                                                                            "firstName": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "lastName": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "title": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "dataVersion": {
+                                                                "type": "string"
+                                                            },
+                                                            "eventTime": {
+                                                                "type": "string"
+                                                            },
+                                                            "eventType": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "metadataVersion": {
+                                                                "type": "string"
+                                                            },
+                                                            "subject": {
+                                                                "type": "string"
+                                                            },
+                                                            "topic": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "eventType",
+                                                            "subject",
+                                                            "eventTime",
+                                                            "data",
+                                                            "dataVersion",
+                                                            "metadataVersion",
+                                                            "topic"
+                                                        ],
+                                                        "type": "object"
+                                                    },
+                                                    "type": "array"
+                                                },
+                                                "headers": {
+                                                    "properties": {
+                                                        "Connection": {
+                                                            "type": "string"
+                                                        },
+                                                        "Content-Length": {
+                                                            "type": "string"
+                                                        },
+                                                        "Content-Type": {
+                                                            "type": "string"
+                                                        },
+                                                        "Host": {
+                                                            "type": "string"
+                                                        },
+                                                        "aeg-data-version": {
+                                                            "type": "string"
+                                                        },
+                                                        "aeg-delivery-count": {
+                                                            "type": "string"
+                                                        },
+                                                        "aeg-event-type": {
+                                                            "type": "string"
+                                                        },
+                                                        "aeg-metadata-version": {
+                                                            "type": "string"
+                                                        },
+                                                        "aeg-subscription-name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "For_each": {
+                            "foreach": "@trigger()?['outputs']['body']",
+                            "actions": {
+                                "Create_or_update_document": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "firstName": "@items('For_each')?['data']?['properties']?['firstName']",
+                                            "id": "@items('For_each')?['id']",
+                                            "lastName": "@items('For_each')?['data']?['properties']?['lastName']"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['documentdb']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/dbs/@{encodeURIComponent('PeopleList')}/colls/@{encodeURIComponent('People')}/docs"
+                                    }
+                                }
+                            },
+                            "runAfter": {},
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "documentdb": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('documentdb_connection'))]",
+                                "connectionName": "documentdb",
+                                "id": "[reference('Microsoft.Web/connections/documentdb', '2016-06-01').api.id]"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('documentdb_connection'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('documentdb_connection')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "properties": {
+                "parameterValues": { 
+                    "databaseAccount": "[parameters('cosmosDbAccountName')]",
+                    "accessKey": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName')), providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]).primaryMasterKey]"
+                },
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/',  variables('documentdb_connection'))]" 
+                }
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {
+    }
+}
