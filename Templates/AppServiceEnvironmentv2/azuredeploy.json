@@ -59,35 +59,68 @@
             "metadata": {
                 "description": "Defines the number of instances that will be allocated to the app service plan."
             }
+        },
+        "certificateThumbprint": {
+            "type": "string"
+        },
+        "pfxPassword": {
+            "type": "securestring"
+        },
+        "pfxBlobValue": {
+            "type": "string"
+        },
+        "whiteListIps" : {
+            "type" : "array"
         }
     },
     "variables": {
+        "certificateName" : "[concat('DefaultCertificateFor_',parameters('aseName'),'_InternalLoadBalancingASE')]",
         "appVnetResourceGroupName": "DevSub01_Network_RG",
         "virtualNetworkName": "DevSub01-VNet-001",
-        "subnetName": "ASE",
+        "subnetName": "ASEv2",
         "existingVnetResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('appVnetResourceGroupName'), '/providers/Microsoft.Network/virtualNetworks/' , variables('virtualNetworkName'))]"
     },
     "resources": [
         {
+            "type": "Microsoft.Web/certificates",
+            "name": "[variables('certificateName')]",
             "apiVersion": "2015-08-01",
+            "location": "[parameters('aseLocation')]",
+            "properties": {
+                "pfxBlob": "[parameters('pfxBlobValue')]",
+                "password": "[parameters('pfxPassword')]",
+                "hostingEnvironmentProfile": {
+                    "id": "[resourceId('Microsoft.Web/hostingEnvironments',parameters('aseName'))]"
+               }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/hostingEnvironments/', parameters('aseName'))]"
+            ]
+        },
+        {
+            "apiVersion": "2016-09-01",
             "type": "Microsoft.Web/hostingEnvironments",
             "name": "[parameters('aseName')]",
             "kind": "ASEV2",
             "location": "[parameters('aseLocation')]",
             "properties": {
-                "name": "[parameters('aseName')]",
-                "location": "[parameters('aseLocation')]",
-                "ipSslAddressCount": 0,
                 "internalLoadBalancingMode": "[parameters('internalLoadBalancingMode')]",
                 "dnsSuffix" : "[parameters('dnsSuffix')]",
                 "virtualNetwork": {
                     "Id": "[variables('existingVnetResourceId')]",
                     "Subnet": "[variables('subnetName')]"
+                },
+                "clusterSettings": [
+                    {
+                        "name": "DefaultSslCertificateThumbprint",
+                        "value": "[parameters('certificateThumbprint')]"
                     }
+                ],
+                "userWhitelistedIpRanges":  "[parameters('whiteListIps')]"
             }
         },
         {
-            "apiVersion": "2015-08-01",
+            "apiVersion": "2016-09-01",
             "name": "[parameters('appServicePlanName')]",
             "type": "Microsoft.Web/serverfarms",
             "location": "[parameters('aseLocation')]",
@@ -105,7 +138,8 @@
                 "capacity": "[parameters('capacity')]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Web/hostingEnvironments/', parameters('aseName'))]"
+                "[concat('Microsoft.Web/hostingEnvironments/', parameters('aseName'))]",
+                "[concat('Microsoft.Web/certificates/',variables('certificateName'))]"
             ]
         },
         {
@@ -121,7 +155,8 @@
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Web/serverFarms/',parameters('appServicePlanName'))]"
+                "[concat('Microsoft.Web/serverFarms/',parameters('appServicePlanName'))]",
+                "[concat('Microsoft.Web/certificates/',variables('certificateName'))]"
             ]
         }
     ]

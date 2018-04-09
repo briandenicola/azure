@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "aseName": {
-            "value": "bjdase003"
+            "value": ""
         },
         "aseLocation": {
             "value": "South Central US"
@@ -12,19 +12,41 @@
             "value": 3
         },
         "dnsSuffix": {
-            "value": "ase.denicolafamily.com"
+            "value": ""
         },
         "siteName": {
-            "value": "bjdweb001"
+            "value": ""
         },
         "appServicePlanName": {
-            "value": "ASEServicePlan001"
+            "value": "ASEServicePlan002"
         },
         "pricingTier": {
             "value": "1"
         },
         "capacity": {
             "value": 1
+        },
+        "certificateThumbprint": {
+            "value": ""
+        },
+        "pfxPassword": {
+            "reference": {
+                "keyVault": {
+                    "id": ""
+                },
+                "secretName": "AzureWebAppCertPassword"
+            }
+        },
+        "pfxBlobValue": {
+            "reference": {
+                "keyVault": {
+                    "id": ""
+                },
+                "secretName": "AzureWebAppCert"
+            }
+        },
+        "whiteListIps" : {
+            "value" : [""]
         }
     }
 }
