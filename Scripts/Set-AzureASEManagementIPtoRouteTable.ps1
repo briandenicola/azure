@@ -17,7 +17,7 @@ function Get-AzureASEMgmtIpAddressesForRegion {
     $content = (Invoke-WebRequest -UseBasicParsing -Uri $management_page).Content
     $ips = $content.Split("`n") | Where-Object { $_ -imatch '<td>' }
     $results = $ips | Select-String -Context 1 -SimpleMatch $region 
-    return ( $results.Context.PostContext.TrimStart('<td>').TrimEnd('</td>').Split(',').TrimStart() )
+    return ( $results.Context.PostContext.TrimStart('<td>').TrimEnd('</td>').Split(',').TrimStart() | Sort-Object -Unique)
 }
 
 try { 
