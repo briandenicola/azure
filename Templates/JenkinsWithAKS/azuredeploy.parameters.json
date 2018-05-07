@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "adminUsername": {
+        "value": "manager"
+      },
+      "sshPublicKey": {
+        "value": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIBv9dZRFexnmHvgN5AodwuHzJuQcPZC0PfwYRIFokRBjdlgrm090tmbuQ2CD3sv0Q2dmMbBaJvaHoU5wRJ7GmDdh6+Qj2xx7xEmXc8IHpCQrEY+OE5q9IcWdI6aO3ZApMUv12TLJLE3PXjpYcx++oz2j7xO/9yDjtOwmrVIKiYaRQ== rsa-key-20140819"
+      },
+      "jenkinsDnsPrefix": {
+        "value": "bjdpipeline"
+      },
+      "servicePrincipalAppId": {
+        "value": "4e565daf-621d-48d3-b010-xyz"
+      },
+      "servicePrincipalAppKey": {
+        "value": "R7U/Ld6GHqhfhU2LcEh/...="
+      }
+    }
+  }
