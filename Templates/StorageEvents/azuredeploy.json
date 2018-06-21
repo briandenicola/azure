@@ -1,0 +1,234 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "LogicAppName": {
+            "type": "string"
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "eventGridSubscriptionName" : {
+            "type": "string"
+        },
+        "clientId" : {
+            "type": "string"
+        },
+        "clientSecret" : {
+            "type": "securestring"
+        },
+        "tenantid" : {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "msteams_connection": "teams",
+        "blob_connection": "azureblob",
+        "events_connection": "azureeventgrid"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "name": "[parameters('storageAccountName')]",
+            "apiVersion": "2018-02-01",
+            "location": "[resourceGroup().location]",
+            "identity": {
+                "type": "SystemAssigned"
+            }
+        },
+        {
+            "name": "[concat(parameters('storageAccountName'), '/Microsoft.EventGrid/', parameters('eventGridSubscriptionName'))]",
+            "type": "Microsoft.Storage/storageAccounts/providers/eventSubscriptions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2018-01-01",
+            "properties": {
+                "destination": {
+                    "endpointType": "WebHook",
+                    "properties": {
+                        "endpointUrl": "[listCallbackURL(concat(resourceId('Microsoft.Logic/workflows/', parameters('logicAppName')), '/triggers/When_a_resource_event_occurs'), '2016-06-01').value]"
+                    }
+                },
+                "filter": {
+                    "includedEventTypes": [
+                        "All"
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[parameters('storageAccountName')]",
+                "[parameters('LogicAppName')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('msteams_connection')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "displayName": "[variables('msteams_connection')]",
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/',  variables('msteams_connection'))]" 
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('blob_connection')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "displayName": "[variables('blob_connection')]",
+                "parameterValues": {
+                    "accountName": "[parameters('storageAccountName')]",    
+                    "accessKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+                },
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/',  variables('blob_connection'))]" 
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('events_connection')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "displayName": "[variables('events_connection')]",
+                "parameterValues": { 
+                    "token:clientId":  "[parameters('clientId')]",
+                    "token:clientSecret": "[parameters('clientSecret')]",
+                    "token:tenantId":  "[parameters('tenantId')]",
+                    "token:grantType": "client_credentials"
+                },
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/',  variables('events_connection'))]" 
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('LogicAppName')]",
+            "apiVersion": "2017-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_resource_event_occurs": {
+                            "inputs": {
+                                "body": {
+                                    "properties": {
+                                        "destination": {
+                                            "endpointType": "webhook",
+                                            "properties": {
+                                                "endpointUrl": "@{listCallbackUrl()}"
+                                            }
+                                        },
+                                        "topic": "[resourceId(subscription().subscriptionid, resourceGroup().name, 'Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
+                                    }
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureeventgrid']['connectionId']"
+                                    }
+                                },
+                                "path": "[concat('/subscriptions/', subscription().subscriptionid, '/providers/Microsoft.Storage.StorageAccounts/resource/eventSubscriptions')]",
+                                "queries": {
+                                    "x-ms-api-version": "2017-06-15-preview"
+                                }
+                            },
+                            "splitOn": "@triggerBody()",
+                            "type": "ApiConnectionWebhook"
+                        }
+                    },
+                    "actions": {
+                        "Condition": {
+                            "actions": {
+                                "Post_message": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "rootMessage": {
+                                                "body": {
+                                                    "content": "@{triggerBody()?['eventTime']}@{triggerBody()?['eventType']}@{triggerBody()?['subject']}",
+                                                    "contentType": 1
+                                                }
+                                            }
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['teams']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/beta/groups/@{encodeURIComponent('3529219f-6176-4ede-9775-59715b699d67')}/channels/@{encodeURIComponent('9b05fc46-c281-4cbd-a1bf-5850d7bc09f9')}/chatThreads"
+                                    }
+                                }
+                            },
+                            "runAfter": {},
+                            "expression": {
+                                "or": [
+                                    {
+                                        "equals": [
+                                            "@triggerBody()?['eventType']",
+                                            "Microsoft.Storage.BlobCreated"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@triggerBody()?['eventType']",
+                                            "Microsoft.Storage.BlobDeleted"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "teams": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('msteams_connection'))]",
+                                "connectionName": "[variables('msteams_connection')]",
+                                "id": "[reference(concat('Microsoft.Web/connections/', variables('msteams_connection')), '2016-06-01').api.id]"
+                            },
+                            "azureeventgrid": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('events_connection'))]",
+                                "connectionName": "[variables('events_connection')]",
+                                "id": "[reference(concat('Microsoft.Web/connections/', variables('events_connection')), '2016-06-01').api.id]"
+                            }
+
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+                "[resourceId('Microsoft.Web/connections', variables('msteams_connection'))]",
+                "[resourceId('Microsoft.Web/connections', variables('events_connection'))]",
+                "[resourceId('Microsoft.Web/connections', variables('blob_connection'))]"
+            ]
+        }
+    ]
+}
