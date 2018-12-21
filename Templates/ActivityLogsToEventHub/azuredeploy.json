@@ -1,0 +1,44 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "eventHubSubscription" : {
+            "type": "string"
+        },
+        "eventHubResourceGroupName" : {
+            "type": "string"
+        },
+        "eventHubNameSpaceName" : {
+            "type": "string"
+        },
+        "locations" : {
+            "type": "array",
+            "defaultvalue" : ["global", "southcentralus", "centralus" ]
+        }
+    },
+    "variables": {
+        "eventHubPolicy": "RootManageSharedAccessKey",
+        "eventHubId": "[concat('/subscriptions/', parameters('eventHubSubscription'), '/resourceGroups/', parameters('eventHubResourceGroupName'), '/providers/Microsoft.EventHub/namespaces/', parameters('eventHubNameSpaceName'), '/authorizationrules/', variables('eventHubPolicy'))]"
+    },
+    "resources": [
+         {
+            "type": "microsoft.insights/logprofiles",
+            "apiVersion": "2016-03-01",
+            "name": "default",
+            "properties": {
+                "serviceBusRuleId": "[variables('eventHubId')]",
+                "locations": "[parameters('locations')]",
+                "categories": [
+                  "Write",
+                  "Delete",
+                  "Action"
+                ],
+                "retentionPolicy": {
+                  "enabled": false,
+                  "days": 0
+                }
+            },
+            "dependsOn": []
+        }
+   ]
+}
