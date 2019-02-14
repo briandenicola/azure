@@ -57,4 +57,4 @@ $auth = New-Object psobject -Property @{
 $updatedEndpoint.authorization = $auth
 $updateUri = "https://dev.azure.com/{0}/{1}/_apis/serviceendpoint/endpoints/{2}?api-version=5.0-preview.2" -f $OrganizationName, $ProjectName, $updatedEndpoint.id
 
-Invoke-RestMethod -UseBasicParsing -Uri $updateUri -Method Post -Headers $headers -Body (ConvertTo-Json $updatedEndpoint) -ContentType "application/json"
+Invoke-RestMethod -UseBasicParsing -Uri $updateUri -Method Put -Headers $headers -Body (ConvertTo-Json $updatedEndpoint) -ContentType "application/json"
