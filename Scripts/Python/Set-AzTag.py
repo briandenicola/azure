@@ -57,5 +57,3 @@ if __name__ == "__main__":
 
     for item in client.resources.list_by_resource_group(GROUP_NAME):
         print_item(item)
-
-
