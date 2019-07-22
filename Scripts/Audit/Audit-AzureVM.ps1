@@ -26,9 +26,9 @@ foreach( $computer in $computers ) {
 
     $vm = Get-AzureVM -ServiceName $service -Name $computer 
     $os = $vm | Get-AzureOSDisk 
-    $disks = $vm | Get-AzureDataDisk | Select DiskName, MediaLink, LogicalDiskSizeInGB 
+    $disks = $vm | Get-AzureDataDisk | Select-Object DiskName, MediaLink, LogicalDiskSizeInGB 
 
-    $os_label = Get-AzureVMImage | Where { $_.ImageName -eq $os.SourceImageName  } | Select -ExpandProperty Label
+    $os_label = Get-AzureVMImage | Where-Object { $_.ImageName -eq $os.SourceImageName  } | Select-Object -ExpandProperty Label
     $azure_service = Get-AzureService -ServiceName $service 
     $notes = "Affinity Group = {0}.Date Created = {1}. Url = {2}" -f $azure_service.AffinityGroup, $azure_service.DateCreated, $azure_service.Url 
     
