@@ -16,7 +16,7 @@ function Get-NewSecret
     $message = [System.Web.Security.Membership]::GeneratePassword($length,1)
 
     return $message
-}``
+}
 
 $secret = Get-NewSecret
 $secureSecure = ConvertTo-SecureString -String $secret -AsPlainText -Force
