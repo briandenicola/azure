@@ -1,5 +1,5 @@
 $cxt = Get-AzureRmContext | Select-Object -Expand Tenant 
-if( $cxt -eq $null ) {
+if( $null -eq $cxt  ) {
     Login-AzureRmAccount
 }
 
