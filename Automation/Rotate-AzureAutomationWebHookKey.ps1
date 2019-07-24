@@ -6,7 +6,7 @@ if( $cxt -eq $null ) {
 $keyVault = "BjdCoreKeyVault"
 $secretName = "AzureAutomationKey01"
 $automationAccount = "Automation"
-$automationResourceGroup = "Core_Infra_Automation_RG"
+$automationResourceGroup = "Core_Infra_Automation_RG"`
 
 function Get-NewSecret
 {
@@ -15,13 +15,8 @@ function Get-NewSecret
     [void][Reflection.Assembly]::LoadWithPartialName("System.Web")
     $message = [System.Web.Security.Membership]::GeneratePassword($length,1)
 
-    $hmacsha = New-Object System.Security.Cryptography.HMACSHA256
-    $hmacsha.key = [Text.Encoding]::ASCII.GetBytes($secret)
-    $signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($message))
-    $signature = [Convert]::ToBase64String($signature)
-
-    return $signature
-}
+    return $message
+}``
 
 $secret = Get-NewSecret
 $secureSecure = ConvertTo-SecureString -String $secret -AsPlainText -Force
