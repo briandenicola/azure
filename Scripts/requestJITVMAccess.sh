@@ -37,26 +37,34 @@ while (( "$#" )); do
   esac
 done
 
+if [[ -z "${ipAddress}" ]]; then
+  allowedIPAddress="0.0.0.0/0"
+else
+  allowedIPAddress="${ipAddress}"
+fi
+
+if [[ -z "${port}" ]]; then
+  port="22"
+fi
+
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
   az login 
 fi
 az account set -s ${subscriptionName}
 
+echo Getting Subscription Id ${subscriptionName}
 subid=`az account show -o tsv --query "id"`       
 listUri="https://management.azure.com/subscriptions/${subid}/providers/Microsoft.Security/jitNetworkAccessPolicies?api-version=2015-06-01-preview"
 
-ascPolicy=`az rest -m GET --uri ${listUri} -o json --query "value"`
+echo Getting ASC Loction and Name
+ascPolicy=`az rest -m GET --uri ${listUri} -o json --query "value" --headers content-type=application/json`
 ascName=`echo ${ascPolicy} | jq ".[0].name" | tr -d '"'`   
 ascLocation=`echo ${ascPolicy} | jq ".[0].location" | tr -d '"'`
 
 requestUri="https://management.azure.com/subscriptions/${subid}/resourceGroups/${rgName}/providers/Microsoft.Security/locations/${ascLocation}/jitNetworkAccessPolicies/${ascName}/initiate?api-version=2015-06-01-preview"
 
-if [[ -z "${ipAddress}" ]]; then
-  allowedIPAddress="0.0.0.0/0"
-else
-  allowedIPAddress="${ipAddress}"
-fi
+
 
 read -d '' requestBody << EOF
 {
@@ -75,4 +83,6 @@ read -d '' requestBody << EOF
 }
 EOF
 
-az rest -m post --uri ${requestUri} --body "${requestBody}" --verbose 
+echo Request ASC Policy Update to ${requestUri}
+echo Request Body - ${requestBody}
+az rest -m post --uri ${requestUri} --body "${requestBody}" --headers content-type=application/json --verbose 
