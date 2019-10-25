@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Bson" version="2.9.2" />
+    <PackageReference Include="MongoDB.Driver" version="2.9.2" />
+    <PackageReference Include="MongoDB.Driver.Core" version="2.9.2" />
+    <PackageReference Include="Newtonsoft.Json" version="9.0.1" />
+  </ItemGroup>
+
+</Project>
+
