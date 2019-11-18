@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "targetScope": "subscription",
+    "parameters": {
+      "storageAccountforLogs_storageAccountName": {
+        "type": "string",
+        "metadata": {
+          "displayName": "storageAccountName (Storage Account for Logs)"
+        }
+      }
+    },
+    "resourceGroups": {
+      "Corp_IT_Default_RG": {
+        "name": "Corp_IT_RG",
+        "location": "southcentralus",
+        "dependsOn": []
+      }
+    }
+  }
+}

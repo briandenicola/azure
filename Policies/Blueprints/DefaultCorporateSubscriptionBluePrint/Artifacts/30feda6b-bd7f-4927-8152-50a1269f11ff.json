@@ -1,0 +1,9 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "CorporatePolicy-Americas",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/Denicolafamily/providers/Microsoft.Authorization/policySetDefinitions/34671606-fdf7-49d9-bd2d-aea4ed26a26b",
+    "parameters": {}
+  }
+}
