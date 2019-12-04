@@ -19,7 +19,7 @@ public class Program {
 	
     public static void main(String[] args)
     {
-        MongoClient mongoClient = new MongoClient(new MongoClientURI(""));
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://bjdmongo001:NK0RjLZvvj8t3sMUJZcV4PTw46anL39vJTWN3wpvJaWr4AQWX8wrl4p04Mv3sy4MhZZv5HgqtHXsKACHrVpKvA==@bjdmongo001.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@bjdmongo001@"));
         MongoDatabase database = mongoClient.getDatabase("db001");
         MongoCollection<Document> collection = database.getCollection("loans001");
 
@@ -27,7 +27,9 @@ public class Program {
         
         try {
             
-            File file = new File("../java.json");
+            //File file = new File("../brian.large.json");
+            File file = new File("../sha.notworking.json");
+            //File file = new File("../philip.orig.json");
             
             byte[] data = Files.readAllBytes(file.toPath());           
             collection.insertOne(Document.parse(new String(data)));
