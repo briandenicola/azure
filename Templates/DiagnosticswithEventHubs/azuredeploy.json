@@ -1,0 +1,227 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualMachineName": {
+      "type": "string",
+      "metadata": {
+        "description": " Virtual Machine Name"
+      }
+    },
+    "virtualMachineSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine Size"
+      },
+      "allowedValues": [
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4"
+      ],
+      "defaultValue": "Standard_DS4"
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine Administrator User Name"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Virtual Machine Administrator Password"
+      }
+    }
+  },
+  "variables": {
+    "eventHubKey": "",
+    "storageAccountKey": "",
+    "virtualNetworkRG": "",
+    "virtualNetworkName": "",
+    "storageAccountType": "Premium_LRS",
+    "vnetID": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('virtualNetworkRG'), '/providers/Microsoft.Network/virtualNetworks/',variables('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/Management')]",
+    "publicIpAddressName": "[concat(parameters('virtualMachineName'), '-pip')]",
+    "networkInterfaceName": "[concat(parameters('virtualMachineName'), '-nic')]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('virtualMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2019-03-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+      ],
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "osProfile": {
+          "computerName": "[parameters('virtualMachineName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "windowsConfiguration": {
+            "provisionVmAgent": true
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2019-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[variables('storageAccountType')]"
+            }
+          },
+          "dataDisks": [
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('networkInterfaceName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIpAddress": {
+                "id": "[resourceId(resourceGroup().Name,'Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('publicIpAddressName')]",
+      "type": "Microsoft.Network/publicIpAddresses",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIpAllocationMethod": "dynamic"
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2019-03-01",
+      "name": "[concat(parameters('virtualMachineName'), '/IaaSDiagnostics')]",
+      "location": "southcentralus",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
+      ],
+      "properties": {
+        "autoUpgradeMinorVersion": true,
+        "publisher": "Microsoft.Azure.Diagnostics",
+        "type": "IaaSDiagnostics",
+        "typeHandlerVersion": "1.5",
+        "settings": {
+          "WadCfg": {
+            "DiagnosticMonitorConfiguration": {
+              "overallQuotaInMB": 4096,
+              "DiagnosticInfrastructureLogs": {
+                "scheduledTransferLogLevelFilter": "Error"
+              },
+              "Directories": {
+                "scheduledTransferPeriod": "PT1M",
+                "IISLogs": {
+                  "containerName": "wad-iis-logfiles"
+                },
+                "FailedRequestLogs": {
+                  "containerName": "wad-failedrequestlogs"
+                }
+              },
+              "PerformanceCounters": {
+                "scheduledTransferPeriod": "PT1M",
+                "sinks": "EventHub",
+                "PerformanceCounterConfiguration": [
+                  {
+                    "counterSpecifier": "\\Memory\\Available Bytes",
+                    "sampleRate": "PT15S"
+                  },
+                  {
+                    "counterSpecifier": "\\Memory\\% Committed Bytes In Use",
+                    "sampleRate": "PT15S"
+                  },
+                  {
+                    "counterSpecifier": "\\Memory\\Committed Bytes",
+                    "sampleRate": "PT15S"
+                  },
+                  {
+                    "counterSpecifier": "\\Processor(_total)\\% Processor Time",
+                    "sampleRate": "PT15S"
+                  }
+                ]
+              },
+              "WindowsEventLog": {
+                "scheduledTransferPeriod": "PT1M",
+                "DataSource": [
+                  {
+                    "name": "Application!*"
+                  },
+                  {                  
+                    "name": "System!*"
+                  },
+                  {                  
+                    "name": "Security!*"
+                  }
+                ]
+              },
+              "Logs": {
+                "scheduledTransferPeriod": "PT1M",
+                "scheduledTransferLogLevelFilter": "Error"
+              }
+            },
+            "SinksConfig": {
+              "Sink": [
+                {
+                  "name": "EventHub",
+                  "EventHub": {
+                    "Url": "https://{}.servicebus.windows.net/events",
+                    "SharedAccessKeyName": "RootManageSharedAccessKey"
+                  }
+                }
+              ]
+            }
+          },
+          "StorageAccount": "{}}"
+        },
+        "protectedSettings": {
+            "storageAccountName": "{}",
+            "storageAccountKey": "[variables('storageAccountKey')]",
+            "storageAccountEndPoint": "https://core.windows.net",
+            "EventHub": {
+              "Url": "https://{}.servicebus.windows.net/events",
+              "SharedAccessKeyName": "RootManageSharedAccessKey",
+              "SharedAccessKey": "[variables('eventHubKey')]"
+            }
+          }
+        }
+      }
+  ],
+  "outputs": {
+  }
+}
