@@ -32,15 +32,37 @@
       "metadata": {
         "description": "Virtual Machine Administrator Password"
       }
+    },
+    "eventHubNameSpace": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing Event Hub"
+      }      
+    },
+    "diagStorageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing Storage Account Name"
+      }
+    },
+    "virtualNetworkRG":  {
+      "type": "string",
+      "metadata": {
+        "description": "Existing Storage Account Name"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing Storage Account Name"
+      }
     }
   },
   "variables": {
-    "eventHubKey": "",
-    "storageAccountKey": "",
-    "virtualNetworkRG": "",
-    "virtualNetworkName": "",
+    "eventHubHubName": "logs",
+    "eventHubPolicyName": "SendKey",
     "storageAccountType": "Premium_LRS",
-    "vnetID": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('virtualNetworkRG'), '/providers/Microsoft.Network/virtualNetworks/',variables('virtualNetworkName'))]",
+    "vnetID": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('virtualNetworkRG'), '/providers/Microsoft.Network/virtualNetworks/',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/Management')]",
     "publicIpAddressName": "[concat(parameters('virtualMachineName'), '-pip')]",
     "networkInterfaceName": "[concat(parameters('virtualMachineName'), '-nic')]"
@@ -99,6 +121,9 @@
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
+      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -178,15 +203,16 @@
               },
               "WindowsEventLog": {
                 "scheduledTransferPeriod": "PT1M",
+                "sinks": "EventHub",
                 "DataSource": [
                   {
-                    "name": "Application!*"
+                    "name": "Application!Error"
                   },
-                  {                  
-                    "name": "System!*"
-                  },
-                  {                  
+                  {
                     "name": "Security!*"
+                  },
+                  {
+                    "name": "System!Critical"
                   }
                 ]
               },
@@ -200,23 +226,23 @@
                 {
                   "name": "EventHub",
                   "EventHub": {
-                    "Url": "https://{}.servicebus.windows.net/events",
-                    "SharedAccessKeyName": "RootManageSharedAccessKey"
+                    "Url": "[concat('https://', parameters('eventHubNameSpace'), '.servicebus.windows.net/', variables('eventHubHubName'))]",
+                    "SharedAccessKeyName": "[variables('eventHubPolicyName')]"
                   }
                 }
               ]
             }
           },
-          "StorageAccount": "{}}"
+          "StorageAccount": "[parameters('diagStorageAccount')]"
         },
         "protectedSettings": {
-            "storageAccountName": "{}",
-            "storageAccountKey": "[variables('storageAccountKey')]",
+            "storageAccountName": "[parameters('diagStorageAccount')]",
+            "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('diagStorageAccount')), '2019-04-01').keys[0].value]",
             "storageAccountEndPoint": "https://core.windows.net",
             "EventHub": {
-              "Url": "https://{}.servicebus.windows.net/events",
-              "SharedAccessKeyName": "RootManageSharedAccessKey",
-              "SharedAccessKey": "[variables('eventHubKey')]"
+              "Url": "[concat('https://', parameters('eventHubNameSpace'), '.servicebus.windows.net/', variables('eventHubHubName'))]",
+              "SharedAccessKeyName": "[variables('eventHubPolicyName')]",
+              "SharedAccessKey": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/AuthorizationRules'),parameters('eventHubNameSpace'),variables('eventHubPolicyName')),'2015-08-01').primaryKey]"
             }
           }
         }
