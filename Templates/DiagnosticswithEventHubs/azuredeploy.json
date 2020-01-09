@@ -48,13 +48,19 @@
     "virtualNetworkRG":  {
       "type": "string",
       "metadata": {
-        "description": "Existing Storage Account Name"
+        "description": "Virtual Network Resource Group Name"
       }
     },
     "virtualNetworkName": {
       "type": "string",
       "metadata": {
-        "description": "Existing Storage Account Name"
+        "description": "Existing Virtual Network Name"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing Subnet name"
       }
     }
   },
@@ -63,7 +69,7 @@
     "eventHubPolicyName": "SendKey",
     "storageAccountType": "Premium_LRS",
     "vnetID": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('virtualNetworkRG'), '/providers/Microsoft.Network/virtualNetworks/',parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/Management')]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
     "publicIpAddressName": "[concat(parameters('virtualMachineName'), '-pip')]",
     "networkInterfaceName": "[concat(parameters('virtualMachineName'), '-nic')]"
   },
@@ -154,7 +160,7 @@
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2019-03-01",
       "name": "[concat(parameters('virtualMachineName'), '/IaaSDiagnostics')]",
-      "location": "southcentralus",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
       ],
