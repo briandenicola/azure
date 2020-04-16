@@ -13,6 +13,18 @@
     },
     "adminPassword": {
       "value": ""
+    },
+    "eventHubNameSpace": {
+      "value": "bjdlogging"      
+    },
+    "diagStorageAccount": {
+      "value": "bjddiagsa002"
+    },
+    "virtualNetworkRG":  {
+      "value": "DevSub01_Network_RG"
+    },
+    "virtualNetworkName": {
+      "value": "DevSub01-VNet-001"
     }
   }
 }
