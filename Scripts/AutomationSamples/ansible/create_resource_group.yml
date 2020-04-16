@@ -1,0 +1,14 @@
+'''
+ Need a resource group, storage account and Vnet already in the RG
+'''
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Create a resource group.
+      azure_rm_resourcegroup:
+         name: Testing
+         location: westus
+         tags:
+           testing: testing
+           delete: never

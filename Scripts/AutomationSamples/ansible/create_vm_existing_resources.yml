@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+     - name: Create a VM Nic
+       azure_rm_networkinterface:
+          resource_group: AnsibleRG
+          name: testvm002
+          virtual_network_name: Ansible-VNet
+          subnet_name: default
+
+     - name: Create a VM with exiting storage account and NIC
+       azure_rm_virtualmachine:
+          resource_group: AnsibleRG
+          name: testvm002
+          vm_size: Standard_D4
+          storage_account: bjdansiblesa
+          admin_username: manager
+          ssh_password_enabled: false
+          ssh_public_keys:
+             - path: /home/manager/.ssh/authorized_keys
+               key_data: ''
+          network_interfaces: testvm002
+          image:
+            offer: CentOS
+            publisher: OpenLogic
+            sku: '7.1'
+            version: latest

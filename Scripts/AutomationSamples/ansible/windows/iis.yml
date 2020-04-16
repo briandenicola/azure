@@ -1,0 +1,40 @@
+---
+- name: Install IIS Web-Server
+  hosts: all 
+  tasks:
+    - name: Install IIS Web-Server with sub features and management tools
+      win_feature:
+        name: Web-Server
+        state: present
+        include_sub_features: yes
+        include_management_tools: yes
+      register: win_feature
+
+    - name: Create directory structure
+      win_file:
+        path: C:\sites\01
+        state: directory
+        
+    - name: Sample IIS site
+      win_iis_website:
+        name: bjdcloud.demo
+        state: started
+        port: 80
+        hostname: bjdcloud.demo
+        application_pool: bjdcloud
+        physical_path: C:\sites\01
+        parameters: logfile.directory:C:\sites\logs
+      register: website
+
+    - name: Creates an application pool, sets attributes and starts it
+      win_iis_webapppool:
+        name: bjdcloud
+        state: started
+        attributes:
+          managedRuntimeVersion: v4.0
+          autoStart: no
+
+    - name: Remove Default Web Site
+      win_iis_website:
+        name: "Default Web Site"
+        state: absent

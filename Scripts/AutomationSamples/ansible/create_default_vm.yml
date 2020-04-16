@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+   - name: Create VM with defaults
+     azure_rm_virtualmachine:
+       resource_group: AnsibleRG
+       name: testvm10
+       admin_username: manager
+       admin_password: 
+       image:
+         offer: CentOS
+         publisher: OpenLogic
+         sku: '7.1'
+         version: latest

@@ -1,0 +1,167 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualMachineName": {
+      "type": "string",
+      "metadata": {
+        "description": " Virtual Machine Name"
+      }
+    },
+    "virtualMachineSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine Size"
+      },
+      "allowedValues": [
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3"
+      ],
+      "defaultValue": "Standard_DS4"
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine Administrator User Name"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Virtual Machine Administrator Password"
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Machine Storage Account Type"
+      },
+      "allowedValues": [
+        "Premium_LRS",
+        "Standard_LRS"
+      ],
+      "defaultValue": "Premium_LRS"
+    },
+    "domainAdminUsername": {
+      "type": "string",
+      "defaultValue": "manager",
+      "metadata": {
+        "description": "DomainAdmin username"
+      }
+    },
+    "domainAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "DomainAdmin password"
+      }
+    },
+    "domainToJoin": {
+      "type": "string",
+      "defaultValue": "bjdazure.demo",
+      "metadata": {
+        "description": "The FQDN of the AD domain to join"
+      }
+    }
+  },
+  "variables": {
+    "virtualNetworkRG": "Core_Infra_Network_RG",
+    "virtualNetworkName": "BJD-Lab-VNet-001",
+    "vnetID": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('virtualNetworkRG'), '/providers/Microsoft.Network/virtualNetworks/',variables('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/GeneralServers')]",
+    "networkInterfaceName": "[concat(parameters('virtualMachineName'), '-nic')]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('virtualMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2016-04-30-preview",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+      ],
+      "properties": {
+        "osProfile": {
+          "computerName": "[parameters('virtualMachineName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "windowsConfiguration": {
+            "provisionVmAgent": "true"
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+              "publisher": "MicrosoftSQLServer",
+              "offer": "SQL2016SP1-WS2016",
+              "sku": "SQLDEV",
+              "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('storageAccountType')]"
+            }
+          },
+          "dataDisks": [
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('networkInterfaceName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "privateIPAllocationMethod": "Dynamic"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('virtualMachineName'), '/joindomain')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "Name": "[parameters('domainToJoin')]",
+          "OUPath": "",
+          "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainAdminUsername'))]",
+          "Restart": "true",
+          "Options": 3
+        },
+        "protectedsettings": {
+          "Password": "[parameters('domainAdminPassword')]"
+        }
+      }
+    }
+  ],
+  "outputs": { }
+}
