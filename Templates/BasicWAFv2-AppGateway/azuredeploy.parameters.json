@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "southcentralus"
+        },
+        "appGatewayName": {
+            "value": "bjdappgw03"
+        },
+        "VnetResourceGroup": {
+            "value": "DevSub01_Network_RG"
+        },
+        "VnetName": {
+            "value": "DevSub01-VNet-001"
+        },
+        "subnetName" : {
+            "value": "/subnets/AppGateway"
+        },
+        "privateIpAddress": {
+            "value": "10.2.105.4"
+        }
+    }
+}
