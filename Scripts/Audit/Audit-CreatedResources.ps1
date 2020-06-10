@@ -26,11 +26,11 @@
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$false)]
-    [ValidateRange(1,45)]
+    [Parameter(Mandatory = $false)]
+    [ValidateRange(1, 45)]
     [int]    $DaysToAudit = 1,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string[]] $ResourceGroups,
 
@@ -40,8 +40,8 @@ param(
 #Set-StrictMode -Version 5
 
 $params = @{
-    StartTime  = $(Get-Date).AddDays(-$DaysToAudit)
-    Status     = "Succeeded"
+    StartTime = $(Get-Date).AddDays(-$DaysToAudit)
+    Status    = "Succeeded"
 }
 
 try { 
@@ -53,31 +53,31 @@ catch {
 }
 
 $logs = $()
-if( $ResourceGroups -eq "*" ) {
+if ( $ResourceGroups -eq "*" ) {
     $ResourceGroups = Get-AzResourceGroup | Select-Object -ExpandProperty ResourceGroupName
 }
 
-foreach( $group in $ResourceGroups )  {
+foreach ( $group in $ResourceGroups ) {
     $logs += Get-AzLog @params -ResourceGroup $group
 }
 
 $selectOpts = @(
-    @{N="EventTimestamp"; E={$_.EventTimestamp.ToLocalTime()}},
-    @{N="EventTimestampUtc"; E={$_.EventTimestamp}},
+    @{N = "EventTimestamp"; E = { $_.EventTimestamp.ToLocalTime() } },
+    @{N = "EventTimestampUtc"; E = { $_.EventTimestamp } },
     'ResourceGroupName',
-    @{N="Resource"; E={($_.ResourceId.Split("/") | Select-Object -Last 1)}}
+    @{N = "Resource"; E = { ($_.ResourceId.Split("/") | Select-Object -Last 1) } }
     'ResourceId',
-    @{N="ResourceProvider"; E={($_.ResourceProviderName.Value)}}
+    @{N = "ResourceProvider"; E = { ($_.ResourceProviderName.Value) } }
     'Caller'
     'CorrelationId'
 )
 
 $createdResources = $logs | 
-    Where-Object { $_.OperationName.Value -imatch 'write' } |
-    Select-Object $selectOpts
+Where-Object { $_.OperationName.Value -imatch 'write' } |
+Select-Object $selectOpts
 
-if( !([string]::IsNullOrEmpty($CSVPath)) ) {
-     $createdResources | Export-Csv -Encoding ASCII -NoTypeInformation -Path $CSVPath
+if ( !([string]::IsNullOrEmpty($CSVPath)) ) {
+    $createdResources | Export-Csv -Encoding ASCII -NoTypeInformation -Path $CSVPath
 }
 else {
     return $createdResources

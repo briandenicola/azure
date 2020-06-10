@@ -1,9 +1,9 @@
 ﻿[CmdletBinding()]
 param(
-    [string] $subscriptionId         = "2deb88fe-eca8-499a-adb9-6e0ea8b6c1d2",
-    [string] $nsgResourceGroupName   = "NSGTest",
-    [string] $nsgName                = "NSGRules",
-    [string] $region                 = "ussouth"
+    [string] $subscriptionId = "2deb88fe-eca8-499a-adb9-6e0ea8b6c1d2",
+    [string] $nsgResourceGroupName = "NSGTest",
+    [string] $nsgName = "NSGRules",
+    [string] $region = "ussouth"
 )
 
 Set-StrictMode -Version 5
@@ -11,10 +11,10 @@ Set-StrictMode -Version 5
 Import-Module -Name Azure_Functions -Force
 Import-Module -Name AzureRmStorageTable
 
-$logResourceGroupName   = "NSGTest"
-$logStorageAccountName  = "bjdnsgruleslog"
-$logTableName           = "Logs"
-$partitionKey           = "NSGRulesUpdate"
+$logResourceGroupName = "NSGTest"
+$logStorageAccountName = "bjdnsgruleslog"
+$logTableName = "Logs"
+$partitionKey = "NSGRulesUpdate"
 
 function Get-AzureDataCenterIPRange {
     param(
@@ -64,7 +64,7 @@ Select-AzureRmSubscription -SubscriptionId $subscriptionId
 $subnets = Get-AzureDataCenterIPRange -region $region
 $nsgRules = Get-AzureRmNetworkSecurityGroup -Name $nsgName -ResourceGroupName $nsgResourceGroupName
 
-if( $nsgRules.SecurityRules.Count -eq 0 ) { 
+if ( $nsgRules.SecurityRules.Count -eq 0 ) { 
     $rulePriority = 100
 }
 else {
@@ -74,26 +74,26 @@ else {
 foreach ($subnet in $subnets.Subnet ) {
     $ruleName = "Allow_Azure_Out_" + $subnet.Split("/")[0]
 
-    if( $ruleName -notin ($nsgRules.SecurityRules | Select-Object -ExpandProperty Name) ) {
-        try{
+    if ( $ruleName -notin ($nsgRules.SecurityRules | Select-Object -ExpandProperty Name) ) {
+        try {
             $opts = @{
-                Name                        = $ruleName
-                Description                 = ("Allow outbound to Azure - {0}") -f $subnet
-                Access                      = "Allow"
-                Protocol                    = "*"
-                Direction                   = "Outbound"
-                Priority                    = $rulePriority 
-                SourceAddressPrefix         = "VirtualNetwork"
-                SourcePortRange             = "*"
-                DestinationAddressPrefix    = $subnet
-                DestinationPortRange        = "*"
+                Name                     = $ruleName
+                Description              = ("Allow outbound to Azure - {0}") -f $subnet
+                Access                   = "Allow"
+                Protocol                 = "*"
+                Direction                = "Outbound"
+                Priority                 = $rulePriority 
+                SourceAddressPrefix      = "VirtualNetwork"
+                SourcePortRange          = "*"
+                DestinationAddressPrefix = $subnet
+                DestinationPortRange     = "*"
             }
 
             Write-Verbose -Message ("Adding Rule {0} to {1} in {2}" -f $ruleName, $nsgName, $nsgResourceGroupName)
             Get-AzureRmNetworkSecurityGroup -Name $nsgName -ResourceGroupName $nsgResourceGroupName |
-                Add-AzureRmNetworkSecurityRuleConfig @opts |
-                Set-AzureRmNetworkSecurityGroup |
-                Out-Null
+            Add-AzureRmNetworkSecurityRuleConfig @opts |
+            Set-AzureRmNetworkSecurityGroup |
+            Out-Null
 
             $rulePriority++
 

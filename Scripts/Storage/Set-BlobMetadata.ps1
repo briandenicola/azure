@@ -1,15 +1,15 @@
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $StorageName,
     
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $Storagekey,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $Container,
 
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $FilePath
 )
 

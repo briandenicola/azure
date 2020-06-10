@@ -2,21 +2,20 @@
 #$clientSecret = "ENRWJwGrAsmEAEwSdlLpxnUzhPIdKA2/b8sfTNcqEBU="
 
 param (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $ClientId,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $ClientSecret,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $subscriptionId,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $CSVPath
 )
 
-function Get-AzureVMMissingPatchesCount
-{
+function Get-AzureVMMissingPatchesCount {
     param (
         [string] $VM,
         [string] $ResourceGroup,
@@ -45,18 +44,18 @@ catch {
 }
 
 $tenant = Get-AzureRmContext | Select-Object -ExpandProperty Tenant | Select-Object -ExpandProperty Id
-$body =  @{"grant_type" = "client_credentials"; "resource" = "https://management.core.windows.net/"; "client_id" = $ClientID; "client_secret" = $ClientSecret }
+$body = @{"grant_type" = "client_credentials"; "resource" = "https://management.core.windows.net/"; "client_id" = $ClientID; "client_secret" = $ClientSecret }
 $Token = Invoke-RestMethod -Uri https://login.microsoftonline.com/$tenant/oauth2/token?api-version=1.0 -Method Post -Body $body 
 
-$headers = @{}
+$headers = @{ }
 $headers.Add( 'authorization' , ('bearer {0}' -f $token.access_token))
 
 $selectOpts = @(
     "Name", 
     "ResourceGroupName", 
     "Location",
-    @{N="OS"; E={("{0}-{1}" -f $_.StorageProfile.ImageReference.Offer, $_.StorageProfile.ImageReference.Sku)}}, 
-    @{N="VMSize";E={$_.HardwareProfile.VmSize}},
-    @{N="MissingPatches";E={(Get-AzureVMMissingPatchesCount -VM $_.Name -ResourceGroup $_.ResourceGroupName -Header $headers)}}
+    @{N = "OS"; E = { ("{0}-{1}" -f $_.StorageProfile.ImageReference.Offer, $_.StorageProfile.ImageReference.Sku) } }, 
+    @{N = "VMSize"; E = { $_.HardwareProfile.VmSize } },
+    @{N = "MissingPatches"; E = { (Get-AzureVMMissingPatchesCount -VM $_.Name -ResourceGroup $_.ResourceGroupName -Header $headers) } }
 )    
 Get-AzureRMVM | Select-Object $selectOpts | Export-Csv -Encoding ASCII -NoTypeInformation -Path $CSVPath

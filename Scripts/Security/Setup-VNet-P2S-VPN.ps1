@@ -6,7 +6,7 @@
 #Commands - 1. Make Root Cert   - makecert -sky exchange -r -n "CN=RootCertificateName" -pe -a sha1 -len 2048 -ss My "RootCertificateName.cer"
 #           2. Make Client Cert - makecert.exe -n "CN=ClientCertificateName" -pe -sky exchange -m 96 -ss My -in "RootCertificateName" -is my -a sha1
 
-$VNetName  = "TestVNet"
+$VNetName = "TestVNet"
 $GWSubName = "GatewaySubnet"
 $VPNClientAddressPool = "172.16.201.0/24"
 
@@ -31,27 +31,27 @@ $MyP2SRootCertPubKeyBase64 = [convert]::ToBase64String($cert.Export("cer", [stri
 $p2srootcert = New-AzureRmVpnClientRootCertificate -Name $P2SRootCertName -PublicCertData $MyP2SRootCertPubKeyBase64
 
 $gw = Get-AzureRmVirtualNetworkGateway -Name $GWIPName -ResourceGroupName $ResourceGroup 
-if($gw -eq $null) {
+if ($gw -eq $null) {
 	$opts = @{
-		Name                 		= $GWName
-		ResourceGroupName    		= $ResourceGroup 
-		Location             		= $Location
-		IpConfigurations     		= $ipconf
-		GatewayType          		= "Vpn" 
-		VpnType              		= "RouteBased"
-		EnableBgp            		= $false
-		GatewaySku                 	= "Standard"
-		VpnClientAddressPool       	= $VPNClientAddressPool
-		VpnClientRootCertificates  	= $p2srootcert
+		Name                      = $GWName
+		ResourceGroupName         = $ResourceGroup 
+		Location                  = $Location
+		IpConfigurations          = $ipconf
+		GatewayType               = "Vpn" 
+		VpnType                   = "RouteBased"
+		EnableBgp                 = $false
+		GatewaySku                = "Standard"
+		VpnClientAddressPool      = $VPNClientAddressPool
+		VpnClientRootCertificates = $p2srootcert
 	}
 	New-AzureRmVirtualNetworkGateway @opts
 } 
 else {
 	$opts = @{
-		VpnClientRootCertificateName 	= $P2SRootCertName 
-		VirtualNetworkGatewayname 		= $GWName 
-		ResourceGroupName 				= $ResourceGroup 
-		PublicCertData 					= $MyP2SRootCertPubKeyBase64
+		VpnClientRootCertificateName = $P2SRootCertName 
+		VirtualNetworkGatewayname    = $GWName 
+		ResourceGroupName            = $ResourceGroup 
+		PublicCertData               = $MyP2SRootCertPubKeyBase64
 	}
 	Add-AzureRmVpnClientRootCertificate @opts 
 	Set-AzureRmVirtualNetworkGatewayVpnClientConfig -VirtualNetworkGateway $gw -VpnClientAddressPool $VPNClientAddressPool	

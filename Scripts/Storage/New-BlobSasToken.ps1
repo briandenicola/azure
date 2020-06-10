@@ -3,7 +3,7 @@ param(
     [ValidatePattern('[http|https]://(.*).blob.core.windows.net/(.*)/(.*)')]
     [string] $uri,
 
-    [ValidateRange(1,36500)]
+    [ValidateRange(1, 36500)]
     [int]    $ValidDays = 1,
 
     [ValidateSet("r", "rwd", "rw", IgnoreCase = $true)]
@@ -23,7 +23,7 @@ catch {
 
 $valid_uri = $uri -match "[http|https]://(.*).blob.core.windows.net/(.*)/(.*)"
 
-if( $valid_uri ) {
+if ( $valid_uri ) {
     $storageAccount = $matches[1]
     $containerName = $matches[2]
     $blob = $matches[3]
@@ -33,7 +33,7 @@ if( $valid_uri ) {
         $resourceGroup = $resource.ResourceGroupName
         $ctx = Get-AzureRMStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount | Select-Object -ExpandProperty Context
         $Expiry = $(Get-Date).AddDays($ValidDays)
-        $token =  New-AzureStorageBlobSASToken -Container $containerName -Permission $Permissions -Blob $blob -Context $ctx -StartTime $(Get-Date).AddHours(-1) -ExpiryTime $Expiry
+        $token = New-AzureStorageBlobSASToken -Container $containerName -Permission $Permissions -Blob $blob -Context $ctx -StartTime $(Get-Date).AddHours(-1) -ExpiryTime $Expiry
 
         #ToDo - Create an nice HTML based Email template and send out to the requestor. 
         return ("Blob SAS Token - {0}{1}" -f $uri, $token)
