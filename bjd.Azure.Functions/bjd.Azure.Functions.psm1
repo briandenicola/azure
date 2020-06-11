@@ -1,18 +1,49 @@
 
 Set-Variable -Name config -Value (Get-Content -Raw (Join-Path -Path $PSScriptRoot -ChildPath "bjd.Azure.Config.json") | ConvertFrom-Json)
 
-function Get-AzAdminPassword {
+function Convert-CertificatetoBase64 {
     param(
+        [Parameter(Mandatory=$true)]
+        [ValidateScript({Test-Path -Path $_})]
+        [string] $CertPath,
+
+        [switch] $CopytoClipboard
+        
+    )
+    $base64Cert = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $CertPath) )
+
+    if($CopytoClipboard) {
+        Set-Clipboard -Value $base64Cert
+    } 
+    
+    return $base64Cert
+}
+
+function Get-AzAdminPassword {
+    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.admin -CopytoClipboard
+}
+
+function Get-AzDevOpsToken {
+    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.token -CopytoClipboard
+}
+
+function Get-AzServicePrincipalSecret {
+    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.secret -CopytoClipboard
+}
+
+function Get-KeyVaultSecret {
+    param(
+        [string] $KeyVaultName,
+        [string] $SecretName,
         [switch] $CopytoClipboard
     )
-    $secret = Get-AzKeyVaultSecret -VaultName $config.KeyVault.VaultName -Name $config.KeyVault.Name  | Select-object -Expand SecretValueText 
+    $secret = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $SecretName  | Select-object -Expand SecretValueText 
     
     if($CopytoClipboard) {
         Set-Clipboard -Value $secret
     } 
-    else {
-        return $secret
-    }
+    
+    return $secret
   
 }
 function New-APIMHeader {
@@ -59,7 +90,7 @@ function Connect-ToAzureVPN {
 function New-AzureVM {
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet("BJD_APP01_Subscription", "BJD_APP02_Subscription", "BJD_Core_Subscription")]
+        [ValidateSet("APP01_Subscription", "APP02_Subscription", "Core_Subscription")]
         [string] $SubscriptionName,
     
         [Parameter(Mandatory=$true)]
@@ -109,7 +140,6 @@ function New-AzureVM {
     $vm = Add-AzVMNetworkInterface -VM $vm -Id $nic.Id
     $vm = Set-AzVMBootDiagnostic -VM $vm -Disable
     $vm = Set-AzVMOSDisk -VM $vm -Name $vmDisk -CreateOption FromImage -StorageAccountType Premium_LRS 
-    
 
     if($linux) {
         $creds = New-PSCredentials -UserName $adminUser -Password ' '
@@ -187,4 +217,15 @@ function Invoke-AzRestMethod {
 
 }
 
-Export-ModuleMember -Function Invoke-AzRestMethod, Get-AzCachedAccessToken, New-AzureVM, Get-AzAdminPassword, New-APIMHeader, Connect-ToAzureVPN 
+$FuncsToExport = @(
+    "Invoke-AzRestMethod",
+    "Get-AzCachedAccessToken", 
+    "New-AzureVM",
+    "Get-AzAdminPassword",
+    "Get-AzDevOpsToken",
+    "Get-AzServicePrincipalSecret",
+    "New-APIMHeader", 
+    "Connect-ToAzureVPN", 
+    "Convert-CertificatetoBase64"
+)
+Export-ModuleMember -Function  $FuncsToExport

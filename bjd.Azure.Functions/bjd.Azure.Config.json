@@ -2,7 +2,11 @@
     "VPNConnectionName": "",
     "keyVault": {
         "VaultName" : "",
-        "Name"      : ""
+        "secrets": {
+            "Admin"     : "",
+            "Token"     : "",
+            "Secret"    : ""
+        }
     },
     "vmSettings"    : {
         "adminUser" : "",
