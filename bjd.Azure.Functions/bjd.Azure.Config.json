@@ -1,0 +1,24 @@
+{
+    "VPNConnectionName": "",
+    "keyVault": {
+        "VaultName" : "",
+        "Name"      : ""
+    },
+    "vmSettings"    : {
+        "adminUser" : "",
+        "timeZone"  : "Central Standard Time",
+        "subnet"    : "Servers",
+        "role"      : "Virtual Machine Administrator Login",
+        "account"   : "",
+        "AzureSettings": [
+            {
+                "SubscriptionName"       : "",
+                "ResourceGroupName"      : "",
+                "VnetResourceGroupName"  : "",
+                "VnetName"               : "",
+                "Location"               : "southcentralus"
+            }
+        ]
+    }
+}
+
