@@ -1,6 +1,4 @@
-
 Set-Variable -Name config -Value (Get-Content -Raw (Join-Path -Path $PSScriptRoot -ChildPath "bjd.Azure.Config.json") | ConvertFrom-Json)
-
 function Convert-CertificatetoBase64 {
     param(
         [Parameter(Mandatory=$true)]
@@ -24,11 +22,11 @@ function Get-AzAdminPassword {
 }
 
 function Get-AzDevOpsToken {
-    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.token -CopytoClipboard
+    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.Token -CopytoClipboard
 }
 
 function Get-AzServicePrincipalSecret {
-    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.secret -CopytoClipboard
+    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.Secret -CopytoClipboard
 }
 
 function Get-KeyVaultSecret {
@@ -55,7 +53,17 @@ function New-APIMHeader {
     return $header
 }
 
+function Get-AzureVPNStatus {
+    [CmdletBinding()]
+    param()
+
+    $VPNConnectionName = $config.VPNConnectionName 
+    Write-Verbose -Message ("[{0}] - Checking Connection status - {1} . . ." -f (Get-Date), $VPNConnectionName)
+    Get-NetIPAddress -InterfaceAlias $VPNConnectionName  -ErrorAction SilentlyContinue 
+    return $?
+}
 function Connect-ToAzureVPN {
+    [CmdletBinding()]
     param ( 
         [Parameter(Mandatory=$false, HelpMessage='Enter a valid Destination Prefix in the format `"w.x.y.z/a`"')] 
         [ValidatePattern("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$")]
@@ -70,10 +78,8 @@ function Connect-ToAzureVPN {
         rasdial.exe $VPNConnectionName /disconnect
         return $true
     }
-
-    $ip = Get-NetIPAddress -InterfaceAlias $VPNConnectionName  -ErrorAction SilentlyContinue
-
-    if($null -eq $ip) {
+  
+    if(-not(Get-AzureVPNStatus)) {
         Write-Verbose -Message ("[{0}] - Establishing Connection Back to {1} . . ." -f (Get-Date), $VPNConnectionName )
         rasdial.exe $VPNConnectionName /phonebook:$VPNPhonebook
         $ip = Get-NetIPAddress -InterfaceAlias $VPNConnectionName | Select-Object -ExpandProperty IPAddress
@@ -85,12 +91,15 @@ function Connect-ToAzureVPN {
 
         Get-NetRoute -InterfaceAlias $VPNConnectionName
     }
+    else {
+        Write-Verbose -Message ("[{0}] - Already connected to {1} . . ." -f (Get-Date), $VPNConnectionName ) 
+    }
 }
 
 function New-AzureVM {
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet("APP01_Subscription", "APP02_Subscription", "Core_Subscription")]
+        [ValidateSet("BJD_APP01_Subscription", "BJD_APP02_Subscription", "BJD_Core_Subscription")]
         [string] $SubscriptionName,
     
         [Parameter(Mandatory=$true)]
@@ -226,6 +235,7 @@ $FuncsToExport = @(
     "Get-AzServicePrincipalSecret",
     "New-APIMHeader", 
     "Connect-ToAzureVPN", 
-    "Convert-CertificatetoBase64"
+    "Convert-CertificatetoBase64",
+    "Get-AzureVPNStatus"
 )
 Export-ModuleMember -Function  $FuncsToExport
