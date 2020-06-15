@@ -115,7 +115,9 @@ function New-AzureVM {
         [switch] $Linux,
         [switch] $DisableAADJoin
     )
-       
+     
+    Select-AzSubscription -SubscriptionName $SubscriptionName
+    
     $vmName     = "bjd{0}" -f (New-Uuid).Substring(0,8)
     $vmNic      = "{0}-nic" -f $vmName
     $vmDisk     = "{0}-osdrive" -f $vmName
@@ -126,6 +128,7 @@ function New-AzureVM {
     $role       = $config.vmSettings.role
     $account    = $config.vmSettings.account
 
+    $vmConfig = @{}
     if( -not([string]::IsNullOrEmpty($VnetResourceGroupName)) -and -not([string]::IsNullOrEmpty($VnetName)) ){
         $vmConfig.Add('ResourceGroupName',$VnetResourceGroupName)
         $vmConfig.Add('VnetResourceGroupName', $VnetResourceGroupName)
@@ -136,7 +139,6 @@ function New-AzureVM {
         $vmConfig = $config.vmSettings.AzureSettings | Where-Object { $_.SubscriptionName -eq $SubscriptionName }
     }
     
-    Select-AzSubscription -SubscriptionName $SubscriptionName
     New-AzResourceGroup -Name $vmConfig.ResourceGroupName -Location $vmConfig.Location 
     
     $vnet = Get-AzVirtualNetwork -Name $vmConfig.VnetName -ResourceGroupName $vmConfig.VnetResourceGroupName
