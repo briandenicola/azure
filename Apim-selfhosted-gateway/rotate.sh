@@ -40,9 +40,9 @@ done
 echo "Set Azure Subscription to ${subscription}"
 az account set -s ${subscription}
 id=`az account show -o tsv --query id`
-uri="https://management.azure.com/subscriptions/${id}/resourceGroups/${RG}/providers/Microsoft.ApiManagement/service/${apiName}/gateways/${gateway}"
+uri="https://management.azure.com/subscriptions/${id}/resourceGroups/${RG}/providers/Microsoft.ApiManagement/service/${apimName}/gateways/${gateway}"
 
-echo "Get Initial Keys for ${apiName}'s ${gateway} gateway"
+echo "Get Initial Keys for ${apimName}'s ${gateway} gateway"
 az rest --method POST --uri "${uri}/listKeyS?api-version=2019-12-01" 
 
 expiry=`date --date='30 days' +"%Y-%m-%dT%H:%m:00Z"`
