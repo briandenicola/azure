@@ -1,7 +1,7 @@
 param(
-	[string] $ResourceLocation  = "southcentralus",
-    [string] $SubscriptionName  = "DevSub02",
-	[string] $VNet_IP_Range     = "10.4.0.0/16", 
+	[string] $ResourceLocation = "southcentralus",
+	[string] $SubscriptionName = "DevSub02",
+	[string] $VNet_IP_Range = "10.4.0.0/16", 
 	[string] $Mgmt_Subnet_Range = "10.4.200.0/24"
 )
 
@@ -9,19 +9,19 @@ $servicePrincipalConnection = Get-AutomationConnection -Name "AzureRunAsConnecti
 Login-AzureRmAccount -ServicePrincipal -TenantId $servicePrincipalConnection.TenantId -ApplicationId $servicePrincipalConnection.ApplicationId -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
 
 $CoreNetworkResourceGroup = "Core_Infra_Network_RG"
-$core_vnet_name  = "BJD-Core-VNet-001"
+$core_vnet_name = "BJD-Core-VNet-001"
 $dns_server = "10.1.1.4"
-$VNet_name  = "{0}-VNet-001" -f $SubscriptionName
+$VNet_name = "{0}-VNet-001" -f $SubscriptionName
 $network_resource_group = "{0}_Network_RG" -f $SubscriptionName 
 
 New-AzureRmResourcegroup -Name $network_resource_group -Location $ResourceLocation
 
 $subnet_configs = @()
 $core_vnet_subnets = @(
-	@{ Name= 'Mgmt'; Range = $Mgmt_Subnet_Range }
+	@{ Name = 'Mgmt'; Range = $Mgmt_Subnet_Range }
 )
 
-foreach( $subnet in $core_vnet_subnets) {
+foreach ( $subnet in $core_vnet_subnets) {
 	$subnet_configs += New-AzureRmVirtualNetworkSubnetConfig -Name $subnet.Name -AddressPrefix $subnet.Range
 }
 
