@@ -25,9 +25,9 @@ $eventTypeTemplate = @"
     >]
 "@
 
-$event = $eventTypeTemplate -f (New-Guid).Guid, $Subject, (Get-Date -Format s), ($object | ConvertTo-Json)
-$event = ($event -replace ">", "}") -replace "<", "{"
+$evnt = $eventTypeTemplate -f (New-Guid).Guid, $Subject, (Get-Date -Format s), ($object | ConvertTo-Json)
+$evnt = ($evnt -replace ">", "}") -replace "<", "{"
 
 $headers = @{}
 $headers.Add('aeg-sas-key', $key)
-Invoke-RestMethod -Method Post -UseBasicParsing -Uri $url -Headers $headers -Body $event -Verbose
+Invoke-RestMethod -Method Post -UseBasicParsing -Uri $url -Headers $headers -Body $evnt -Verbose
