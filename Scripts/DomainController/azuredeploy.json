@@ -1,0 +1,149 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+        "type": "string",
+        "metadata": {
+            "description": "The Virtual Machine Name."
+        },
+        "maxLength": 9
+    },
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Username for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "domainName" : {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the domain to create."
+      }
+    }
+  },
+  "variables": {
+    "virtualNetworkName": "BJD-Core-VNet-001",
+    "coreResourceGroupName": "Core_Infra_Network_RG",
+    "subnetName":         "AD",
+    "vnetId":             "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('coreResourceGroupName'), '/providers/Microsoft.Network/virtualNetworks/' , variables('virtualNetworkName'))]",
+    "subnetRef":          "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
+    
+    "vmSize":             "Standard_DS1_V2",
+    "vhdStorageType":     "Premium_LRS",
+    "diagnosticsStorageAccountName": "bjddcdiagsa001",
+    "diagStorageType":     "Standard_LRS",
+    
+    "OSDiskName": "[concat(parameters('vmName'),'osdisk')]",
+    "nicName": "[concat(parameters('vmName'),'-vnic')]"
+
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('diagnosticsStorageAccountName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "accountType": "[variables('diagStorageType')]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "10.1.1.4",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2016-04-30-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('vmName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "2019-Datacenter",
+              "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          },
+          "dataDisks": [
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[concat('http://', variables('diagnosticsStorageAccountName'), '.blob.core.windows.net')]"
+          }
+        }
+      },
+      "resources": [{
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
+          "apiVersion": "2015-05-01-preview",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+              "typeHandlerVersion": "1.2",
+              "settings": {
+                  "fileUris": [ "['https://raw.githubusercontent.com/briandenicola/azure/master/Scripts/DomainController/Create-ADForest.ps1']" ],
+                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -file Create-ADForest.ps1 ', parameters('domainName'), ' ', parameters('adminPassword') )]"
+              }
+          }
+        }
+      ]
+    }
+  ]
+}
