@@ -146,7 +146,7 @@ function New-AzureVM {
     
     $startTime = Get-Date
     
-    $vm = New-AzVMConfig -VMName $VMName -VMSize $VMSize -AssignIdentity
+    $vm = New-AzVMConfig -VMName $VMName -VMSize $VMSize -IdentityType SystemAssigned
     $nic = New-AzNetworkInterface -Name $vmNic -ResourceGroupName $vmConfig.ResourceGroupName -Location $vmConfig.Location -SubnetId $subnetId
     $vm = Add-AzVMNetworkInterface -VM $vm -Id $nic.Id
     $vm = Set-AzVMBootDiagnostic -VM $vm -Disable
