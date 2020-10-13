@@ -35,14 +35,19 @@ function Get-KeyVaultSecret {
         [string] $SecretName,
         [switch] $CopytoClipboard
     )
-    $secret = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $SecretName  | Select-object -Expand SecretValueText 
+
+    Set-EnvironmentVariable -Key SuppressAzurePowerShellBreakingChangeWarnings -Value $true 
+
+    $secret = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $SecretName | Select-Object -Property SecretValue
+    $plainTextSecret = $secret.SecretValue | ConvertFrom-SecureString -AsPlainText
     
     if($CopytoClipboard) {
-        Set-Clipboard -Value $secret
+        Set-Clipboard -Value $plainTextSecret
     } 
     
-    return $secret
-  
+    Set-EnvironmentVariable -Key SuppressAzurePowerShellBreakingChangeWarnings -Value $false 
+
+    return $plainTextSecret  
 }
 function New-APIMHeader {
     param(
@@ -53,7 +58,7 @@ function New-APIMHeader {
     return $header
 }
 
-function Get-AzureVPNStatus {
+function Get-AzVPNStatus {
     [CmdletBinding()]
     param()
 
@@ -62,6 +67,7 @@ function Get-AzureVPNStatus {
     Get-NetIPAddress -InterfaceAlias $VPNConnectionName  -ErrorAction SilentlyContinue 
     return $?
 }
+
 function Connect-ToAzureVPN {
     [CmdletBinding()]
     param ( 
@@ -79,7 +85,7 @@ function Connect-ToAzureVPN {
         return $true
     }
   
-    if(-not(Get-AzureVPNStatus)) {
+    if(-not(Get-AzVPNStatus)) {
         Write-Verbose -Message ("[{0}] - Establishing Connection Back to {1} . . ." -f (Get-Date), $VPNConnectionName )
         rasdial.exe $VPNConnectionName /phonebook:$VPNPhonebook
         $ip = Get-NetIPAddress -InterfaceAlias $VPNConnectionName | Select-Object -ExpandProperty IPAddress
@@ -238,6 +244,6 @@ $FuncsToExport = @(
     "New-APIMHeader", 
     "Connect-ToAzureVPN", 
     "Convert-CertificatetoBase64",
-    "Get-AzureVPNStatus"
+    "Get-AzVPNStatus"
 )
 Export-ModuleMember -Function  $FuncsToExport
