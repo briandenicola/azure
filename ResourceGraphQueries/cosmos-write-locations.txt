@@ -1,0 +1,6 @@
+Resources
+| where type =~ 'microsoft.documentdb/databaseaccounts'
+| project  subscriptionId, resourceGroup, name, kind writelocations = (properties.writeLocations), readlocations = (properties.readLocations)
+| mv-expand writelocations
+| mv-expand readlocations
+| project subscriptionId, resourceGroup, name, kind, writeLocations = tostring(writelocations.locationName), readLocations = tostring(readlocations.locationName)

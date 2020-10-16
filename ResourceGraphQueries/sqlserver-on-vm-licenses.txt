@@ -1,0 +1,7 @@
+resources 
+| where type == "microsoft.sqlvirtualmachine/sqlvirtualmachines" 
+| extend sqlServerLicenseType = properties.sqlServerLicenseType
+| extend sqlImageOffer = properties.sqlImageOffer
+| extend sqlManagement = properties.sqlManagement
+| extend sqlImageSku = properties.sqlImageSku
+| project name, resourceGroup, id, location, sqlServerLicenseType, sqlImageOffer, sqlManagement, sqlImageSku

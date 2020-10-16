@@ -1,0 +1,5 @@
+ResourceContainers
+ | where type =~ 'microsoft.resources/subscriptions/resourcegroups'
+ | extend apps=tags.application
+ | project subscriptionId, name, apps, tags.owner
+ | order by tostring(apps) desc 

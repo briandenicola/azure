@@ -1,0 +1,7 @@
+Resources
+| join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project SubName=name, subscriptionId) on subscriptionId
+| where type =~ 'Microsoft.Compute/virtualMachines'
+| extend os = properties.storageProfile.osDisk.osType
+| extend osVersion = properties.storageProfile.imageReference.sku
+| extend vmtype = properties.hardwareProfile.vmSize
+| project SubName, subscriptionId, resourceGroup, name, location, vmtype, os, osVersion, tags

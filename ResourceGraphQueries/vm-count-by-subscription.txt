@@ -1,0 +1,4 @@
+Resources
+| where type =~ 'Microsoft.Compute/virtualMachines'
+| summarize count() by tostring(subscriptionId)
+
