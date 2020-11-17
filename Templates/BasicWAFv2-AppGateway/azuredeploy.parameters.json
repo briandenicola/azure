@@ -3,22 +3,22 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "value": "southcentralus"
+            "value": "eastus2"
         },
         "appGatewayName": {
             "value": "bjdappgw03"
         },
         "VnetResourceGroup": {
-            "value": "DevSub01_Network_RG"
+            "value": "hxskdqkr_eastus2_rg"
         },
         "VnetName": {
-            "value": "DevSub01-VNet-001"
+            "value": "vnethxskdqkr001"
         },
         "subnetName" : {
             "value": "/subnets/AppGateway"
         },
         "privateIpAddress": {
-            "value": "10.2.105.4"
+            "value": "10.1.1.4"
         }
     }
 }
