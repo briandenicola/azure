@@ -10,6 +10,6 @@
     "iconUri": "https://raw.githubusercontent.com/kubernetes/community/master/icons/svg/infrastructure_components/labeled/node.svg",
     "targetOsType": "Linux",
     "runCommand": {
-        "commandToExecute": "[k8s_setup.sh]"
+        "commandToExecute": "['k8s_setup.sh']"
     }
 }
