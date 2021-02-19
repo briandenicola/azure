@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspOfferName": {
+            "value": "Denicolafamily Managed Services"
+        },
+        "mspOfferDescription": {
+            "value": "Denicolafamily Managed Services"
+        },
+        "managedByTenantId": {
+            "value": ""
+        },
+        "authorizations": {
+            "value": [
+                { 
+                    "principalId": "", 
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c", 
+                    "principalIdDisplayName": "Brian  (bjdazure.tech)" 
+                }     
+            ]        
+        }
+    }
+}
