@@ -1,0 +1,17 @@
+{
+    "if" : {
+        "anyOf" : [
+            {
+                "field" : "type",
+                "equals" : "Microsoft.AzureActiveDirectory/b2cDirectories"
+            },
+            {
+                "field" : "type",
+                "equals" : "Microsoft.AzureActiveDirectory/b2ctenants"
+            }            
+        ]
+    },
+    "then" : {
+        "effect": "deny"
+    }
+}
