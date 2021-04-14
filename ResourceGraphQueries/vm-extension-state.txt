@@ -1,0 +1,14 @@
+Resources
+| where type == 'microsoft.compute/virtualmachines'
+| extend
+	JoinID = toupper(id),
+	OSType = tostring(properties.storageProfile.osDisk.osType)
+| join kind=leftouter(
+    Resources
+    | where type == 'microsoft.compute/virtualmachines/extensions'
+    | extend 
+        VMId = toupper(substring(id, 0, indexof(id, '/extensions'))),
+        ExtensionName = name,
+		State = properties.provisioningState
+) on $left.JoinID == $right.VMId
+| project name, location, OSType, ExtensionName, State
