@@ -49,6 +49,7 @@ function Get-KeyVaultSecret {
 
     return $plainTextSecret  
 }
+
 function New-APIMHeader {
     param(
         [string] $key
@@ -163,7 +164,7 @@ function New-AzureVM {
     
         $publicKey = Get-PublicKey
         $vm = Set-AzVMOperatingSystem -VM $vm -Linux -ComputerName $vmName -Credential $creds -DisablePasswordAuthentication 
-        $vm = Set-AzVMSourceImage -VM $vm -PublisherName Canonical -Offer UbuntuServer -Skus 18.04-LTS -Version latest
+        $vm = Set-AzVMSourceImage -VM $vm -PublisherName Canonical -Offer UbuntuServer -Skus 20.04-LTS -Version latest
     
         $vm = Add-AzVMSshPublicKey -VM $vm -KeyData $publicKey -Path ("/home/{0}/.ssh/authorized_keys" -f $adminUser)
     }
