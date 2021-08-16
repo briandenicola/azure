@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>bjd.Azure.Functions</id>
-    <version>1.0.10</version>
+    <version>1.0.11</version>
     <authors>Brian Denicola</authors>
     <owners>Brian Denicola</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/briandenicola/Azure</projectUrl>
     <description>A series of Azure functions</description>
-    <releaseNotes>Updated Ubuntu LTS version to 20.04</releaseNotes>
+    <releaseNotes>Updated Ubuntu LTS to 20.04</releaseNotes>
     <copyright>Copyright 2021</copyright>
     <repository type="git" url="https://github.com/briandenicola/Azure.git" />
     <dependencies/>

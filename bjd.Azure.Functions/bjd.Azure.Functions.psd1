@@ -7,11 +7,11 @@
 @{
 
     RootModule = 'bjd.Azure.Functions.psm1'
-    ModuleVersion = '1.0.10'
+    ModuleVersion = '1.0.11'
     GUID = 'c2602a90-dd9a-437e-9a52-2efdf0e392a4'
     Author = 'Brian Denicola'
     CompanyName = 'Denicolafamily'
-    Copyright = '2020'
+    Copyright = '2021'
     RequiredModules = @('bjd.common.functions')
 }
 

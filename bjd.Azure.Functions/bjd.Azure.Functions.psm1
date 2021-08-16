@@ -74,7 +74,7 @@ function Connect-ToAzureVPN {
     param ( 
         [Parameter(Mandatory=$false, HelpMessage='Enter a valid Destination Prefix in the format `"w.x.y.z/a`"')] 
         [ValidatePattern("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$")]
-        [string[]] $RemoteNetworkPrefixs = @("10.1.0.0/16","10.5.0.0/16","10.2.0.0/16"),
+        [string[]] $RemoteNetworkPrefixs = @("10.1.0.0/16","10.2.0.0/16", "10.5.0.0/16", "10.25.0.0/16"),
         [switch] $Disconnect
     )
     $VPNConnectionName = $config.VPNConnectionName
@@ -122,9 +122,9 @@ function New-AzureVM {
         [switch] $Linux,
         [switch] $DisableAADJoin
     )
-     
-    Select-AzSubscription -SubscriptionName $SubscriptionName
     
+    Select-AzSubscription -SubscriptionName $SubscriptionName
+
     $vmName     = "bjd{0}" -f (New-Uuid).Substring(0,8)
     $vmNic      = "{0}-nic" -f $vmName
     $vmDisk     = "{0}-osdrive" -f $vmName
@@ -164,7 +164,7 @@ function New-AzureVM {
     
         $publicKey = Get-PublicKey
         $vm = Set-AzVMOperatingSystem -VM $vm -Linux -ComputerName $vmName -Credential $creds -DisablePasswordAuthentication 
-        $vm = Set-AzVMSourceImage -VM $vm -PublisherName Canonical -Offer UbuntuServer -Skus 20.04-LTS -Version latest
+        $vm = Set-AzVMSourceImage -VM $vm -PublisherName Canonical -Offer 0001-com-ubuntu-server-focal -Skus 20_04-lts -Version latest
     
         $vm = Add-AzVMSshPublicKey -VM $vm -KeyData $publicKey -Path ("/home/{0}/.ssh/authorized_keys" -f $adminUser)
     }
