@@ -11,7 +11,6 @@ terraform {
 
 provider "azurerm" {
   features  {}
-
 }
 
 data "azurerm_resource_group" "ase" {
@@ -25,7 +24,7 @@ data "azurerm_subnet" "ase" {
 }
 
 resource "azurerm_app_service_environment_v3" "ase3" {
-  name                          = "bjdasev3.2"
+  name                          = "bjdasev3-2"
   resource_group_name           = data.azurerm_resource_group.ase.name
   subnet_id                     = data.azurerm_subnet.ase.id
   //internal_load_balancing_mode  = "Web, Publishing" //https://github.com/hashicorp/terraform-provider-azurerm/issues/12251
