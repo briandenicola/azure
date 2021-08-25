@@ -14,17 +14,17 @@ provider "azurerm" {
 }
 
 data "azurerm_resource_group" "ase" {
-  name = "DevSub01_ASEv3_RG"
+  name = "DevSub01_ASEv3.2_RG"
 }
 
 data "azurerm_subnet" "ase" {
-  name                 = "ase"
+  name                 = "asev3"
   virtual_network_name = "DevSub01-VNet-001"
   resource_group_name  = "DevSub01_Network_RG"
 }
 
 resource "azurerm_app_service_environment_v3" "ase3" {
-  name                          = "bjdasev3.1"
+  name                          = "bjdasev3.2"
   resource_group_name           = data.azurerm_resource_group.ase.name
   subnet_id                     = data.azurerm_subnet.ase.id
   internal_load_balancing_mode  = "Web, Publishing"
