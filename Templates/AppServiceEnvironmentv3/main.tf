@@ -81,4 +81,9 @@ resource "azurerm_app_service" "webapp" {
     linux_fx_version          = "DOCKER|bjd145/chatws:1008"
     use_32_bit_worker_process = false
   }
+
+  app_settings = {
+    "DOCKER_REGISTRY_SERVER_URL"  = "https://index.docker.io/v1"
+    "WEBSITE_VNET_ROUTE_ALL"      = "1"
+  }
 }
