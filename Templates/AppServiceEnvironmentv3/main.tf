@@ -48,12 +48,12 @@ resource "azurerm_app_service_plan" "app_service_plan_linux" {
   reserved                     = true
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
   sku {
-    tier         = "IsolatedV2"
-    size        = "I1v2"
-    capacity = 2
+    tier          = "IsolatedV2"
+    size          = "I1v2"
+    capacity      = 2
   }
 }
-
+/*
 resource "azurerm_app_service_plan" "app_service_plan_windows" {
   name                         = "bjdhosting-windows"
   resource_group_name          = data.azurerm_resource_group.ase.name
@@ -62,11 +62,12 @@ resource "azurerm_app_service_plan" "app_service_plan_windows" {
   reserved                     = true
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
   sku {
-    tier         = "IsolatedV2"
-    size        = "I1v2"
-    capacity = 2
+    tier          = "IsolatedV2"
+    size          = "I1v2"
+    capacity      = 2
   }
 }
+*/
 
 resource "azurerm_app_service" "webapp" {
   name                = "web01"
