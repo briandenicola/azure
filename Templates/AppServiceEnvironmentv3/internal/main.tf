@@ -1,6 +1,9 @@
 locals {
-  ase_name  = "bjdasev3-internal"
-  resource_group_name = "DevSub01_Network_RG"
+  ase_name                    = "bjdasev3-internal"
+  resource_group_name         = "DevSub01_ASEv3-internal_RG"
+  network_resource_group_name = "DevSub01_Network_RG"
+  virtual_network_name        = "DevSub01-VNet-001"
+  subnet_name                 = "ase"
 }
 
 terraform {
@@ -23,14 +26,14 @@ data "azurerm_resource_group" "ase" {
 }
 
 data "azurerm_virtual_network" "vnet001" {
-  name                 = "DevSub01-VNet-001"
-  resource_group_name  = "DevSub01_Network_RG"
+  name                 = local.virtual_network_name
+  resource_group_name  = local.network_resource_group_name
 }
 
 data "azurerm_subnet" "ase" {
-  name                 = "ase"
-  virtual_network_name = "DevSub01-VNet-001"
-  resource_group_name  = "DevSub01_Network_RG"
+  name                 = local.subnet_name
+  virtual_network_name = local.virtual_network_name
+  resource_group_name  = local.network_resource_group_name
 }
 
 resource "azurerm_private_dns_zone" "appserviceenvironment_net" {
