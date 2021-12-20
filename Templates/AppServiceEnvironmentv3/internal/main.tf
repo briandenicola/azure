@@ -67,3 +67,34 @@ resource "azurerm_app_service_environment_v3" "ase3" {
   }
 }
 
+resource "azurerm_app_service_plan" "app_service_plan_windows" {
+  name                         = "bjdhosting-windows"
+  resource_group_name          = data.azurerm_resource_group.ase.name
+  location                     = data.azurerm_resource_group.ase.location
+  kind                         = "Windows"
+  reserved                     = false
+  app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
+
+  sku {
+    tier          = "IsolatedV2"
+    size          = "I1v2"
+    capacity      = 2
+  }
+
+}
+
+resource "azurerm_app_service" "webapp" {
+  name                = "01"
+  location            = data.azurerm_resource_group.ase.location
+  resource_group_name = data.azurerm_resource_group.ase.name
+  app_service_plan_id = azurerm_app_service_plan.app_service_plan_windows.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+  
+  site_config {
+    dotnet_framework_version = "v4.0"
+  }
+  
+}
