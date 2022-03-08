@@ -1,6 +1,16 @@
+resource "random_id" "this" {
+  byte_length = 2
+}
+
+resource "random_pet" "this" {
+  length = 1
+  separator  = ""
+}
+
 locals {
-  ase_name                    = "bjdasev3-internal"
-  resource_group_name         = "DevSub01_ASEv3-internal_RG"
+  resource_name               = "${random_pet.this.id}-${random_id.this.dec}"
+  ase_name                    = "${local.resource_name}-ase"
+  resource_group_name         = "DevSub01_ASEv3_RG"
   network_resource_group_name = "DevSub01_Network_RG"
   virtual_network_name        = "DevSub01-VNet-001"
   subnet_name                 = "ase"
@@ -50,7 +60,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appserviceenvironment_
 }
 
 resource "azurerm_app_service_environment_v3" "ase3" {
-  name                          = local.ase_name
+  name                          = "${local.ase_name}"
   resource_group_name           = data.azurerm_resource_group.ase.name
   subnet_id                     = data.azurerm_subnet.ase.id
   internal_load_balancing_mode  = "Web, Publishing" 
@@ -68,7 +78,7 @@ resource "azurerm_app_service_environment_v3" "ase3" {
 }
 
 resource "azurerm_app_service_plan" "app_service_plan_windows" {
-  name                         = "bjdhosting-windows"
+  name                         = "${local.resource_name}-windows-hosting"
   resource_group_name          = data.azurerm_resource_group.ase.name
   location                     = data.azurerm_resource_group.ase.location
   kind                         = "Windows"
@@ -78,12 +88,26 @@ resource "azurerm_app_service_plan" "app_service_plan_windows" {
   sku {
     tier          = "IsolatedV2"
     size          = "I1v2"
-    capacity      = 2
+    capacity      = 3
   }
 
 }
 
-resource "azurerm_app_service" "webapp" {
+resource "azurerm_app_service_plan" "app_service_plan_linux" {
+  name                         = "${local.resource_name}-linux-hosting"
+  resource_group_name          = data.azurerm_resource_group.ase.name
+  location                     = data.azurerm_resource_group.ase.location
+  kind                         = "Linux"
+  reserved                     = true
+  app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
+  sku {
+    tier          = "IsolatedV2"
+    size          = "I1v2"
+    capacity      = 3
+  }
+}
+
+resource "azurerm_app_service" "windows_webapp" {
   name                = "01"
   location            = data.azurerm_resource_group.ase.location
   resource_group_name = data.azurerm_resource_group.ase.name
@@ -97,4 +121,25 @@ resource "azurerm_app_service" "webapp" {
     dotnet_framework_version = "v4.0"
   }
   
+}
+
+resource "azurerm_app_service" "linux_webapp" {
+  name                = "02"
+  location            = data.azurerm_resource_group.ase.location
+  resource_group_name = data.azurerm_resource_group.ase.name
+  app_service_plan_id = azurerm_app_service_plan.app_service_plan_linux.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    linux_fx_version = "DOCKER|bjd145/httpbin:1086"
+    use_32_bit_worker_process = true
+  }
+
+  app_settings = {
+    "WEBSITES_PORT" = "8080"
+  }
+
 }
