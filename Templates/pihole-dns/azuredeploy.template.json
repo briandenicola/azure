@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "pihole_name": {
+            "type": "String"
+        },
+        "pihole_container" : {
+            "type": "string"
+        },
+        "pihole_vnet": {
+            "type": "string"
+        },
+        "pihole_subnet": {
+            "defaultValue": "dns",
+            "type": "string"
+        },
+        "pihole_vnet_rg": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "memoryInGB": "3.5",
+        "cpuCoreCount": "2"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2021-10-01",
+            "name": "[parameters('pihole_name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": "Standard",
+                "containers": [
+                    {
+                        "name": "[parameters('pihole_name')]",
+                        "properties": {
+                            "image": "[parameters('pihole_container')]",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 22
+                                },
+                                {
+                                    "protocol": "UDP",
+                                    "port": 53
+                                }
+                            ],
+                            "environmentVariables": [],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": "[variables('memoryInGB')]",
+                                    "cpu": "[variables('cpuCoreCount')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 22
+                        },
+                        {
+                            "protocol": "UDP",
+                            "port": 53
+                        }
+                    ],
+                    "type": "Private",
+                    "dnsNameLabelReusePolicy": "Unsecure"
+                },
+                "osType": "Linux",
+                "subnetIds": [
+                    { "id": "[resourceId( parameters('pihole_vnet_rg'), 'Microsoft.Network/virtualNetworks/subnets', parameters('pihole_vnet'), parameters('pihole_subnet'))]" }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "containerIPv4Address": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups', parameters('pihole_name'))).ipAddress.ip]"
+        }     
+    }
+}
