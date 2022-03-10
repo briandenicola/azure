@@ -50,11 +50,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appserviceenvironment_
 }
 
 resource "azurerm_app_service_environment_v3" "ase3" {
-  name                          = local.ase_name
-  resource_group_name           = data.azurerm_resource_group.ase.name
-  subnet_id                     = data.azurerm_subnet.ase.id
-  internal_load_balancing_mode  = "Web, Publishing" 
-  zone_redundant                = true
+  name                                    = local.ase_name
+  resource_group_name                     = data.azurerm_resource_group.ase.name
+  subnet_id                               = data.azurerm_subnet.ase.id
+  internal_load_balancing_mode            = "Web, Publishing" 
+  allow_new_private_endpoint_connections  = false
+  dedicated_host_count                    = 2 
+  zone_redundant                          = true
 
   cluster_setting {
     name  = "DisableTls1.0"
