@@ -22,7 +22,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.73.0"
+      version = "~> 3.0.2"
     }
   }
 }
@@ -78,65 +78,61 @@ resource "azurerm_app_service_environment_v3" "ase3" {
   }
 }
 
-resource "azurerm_app_service_plan" "app_service_plan_windows" {
+resource "azurerm_service_plan" "app_service_plan_windows" {
   name                         = "${local.resource_name}-windows-hosting"
   resource_group_name          = data.azurerm_resource_group.ase.name
   location                     = data.azurerm_resource_group.ase.location
-  kind                         = "Windows"
-  reserved                     = false
+  os_type                      = "Windows"
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
-
-  sku {
-    tier          = "IsolatedV2"
-    size          = "I1v2"
-    capacity      = 3
-  }
-
+  sku_name                     = "I2v2"
+  worker_count                 = 3
 }
 
-resource "azurerm_app_service_plan" "app_service_plan_linux" {
+resource "azurerm_service_plan" "app_service_plan_linux" {
   name                         = "${local.resource_name}-linux-hosting"
   resource_group_name          = data.azurerm_resource_group.ase.name
   location                     = data.azurerm_resource_group.ase.location
-  kind                         = "Linux"
-  reserved                     = true
+  os_type                      = "Linux"
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
-  sku {
-    tier          = "IsolatedV2"
-    size          = "I1v2"
-    capacity      = 3
-  }
+  sku_name                     = "I2v2"
+  worker_count                 = 3
 }
 
-resource "azurerm_app_service" "windows_webapp" {
+resource "azurerm_windows_web_app" "windows_webapp" {
   name                = "01"
   location            = data.azurerm_resource_group.ase.location
   resource_group_name = data.azurerm_resource_group.ase.name
-  app_service_plan_id = azurerm_app_service_plan.app_service_plan_windows.id
+  service_plan_id     = azurerm_service_plan.app_service_plan_windows.id
 
   identity {
     type = "SystemAssigned"
   }
   
   site_config {
-    dotnet_framework_version = "v4.0"
+    application_stack  {
+      dotnet_version = "v6.0"
+    }
   }
   
 }
 
-resource "azurerm_app_service" "linux_webapp" {
+resource "azurerm_linux_web_app" "linux_webapp" {
   name                = "02"
   location            = data.azurerm_resource_group.ase.location
   resource_group_name = data.azurerm_resource_group.ase.name
-  app_service_plan_id = azurerm_app_service_plan.app_service_plan_linux.id
+  service_plan_id     = azurerm_service_plan.app_service_plan_linux.id
 
   identity {
     type = "SystemAssigned"
   }
 
   site_config {
-    linux_fx_version = "DOCKER|bjd145/httpbin:1086"
-    use_32_bit_worker_process = true
+    container_registry_use_managed_identity = true
+
+    application_stack  {
+      docker_image = "bjd145.azurecr.io/httpdemo"
+      docker_image_tag = "1256"
+    }
   }
 
   app_settings = {
