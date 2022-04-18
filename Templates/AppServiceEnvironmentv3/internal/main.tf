@@ -78,6 +78,30 @@ resource "azurerm_app_service_environment_v3" "ase3" {
   }
 }
 
+resource "azurerm_dns_a_record" "wildcard_for_app_services" {
+  name                = "*"
+  zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
+  resource_group_name = data.azurerm_resource_group.ase.name
+  ttl                 = 300
+  records             = [ azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses ]
+}
+
+resource "azurerm_dns_a_record" "wildcard_for_kudu" {
+  name                = "*.scm"
+  zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
+  resource_group_name = data.azurerm_resource_group.ase.name
+  ttl                 = 300
+  records             = [ azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses ]
+}
+
+resource "azurerm_dns_a_record" "root_domain" {
+  name                = "@"
+  zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
+  resource_group_name = data.azurerm_resource_group.ase.name
+  ttl                 = 300
+  records             = [ azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses ]
+}
+
 resource "azurerm_service_plan" "app_service_plan_windows" {
   name                         = "${local.resource_name}-windows-hosting"
   resource_group_name          = data.azurerm_resource_group.ase.name
