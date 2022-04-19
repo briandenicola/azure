@@ -80,7 +80,7 @@ resource "azurerm_app_service_environment_v3" "ase3" {
   }
 }
 
-resource "azurerm_dns_a_record" "wildcard_for_app_services" {
+resource "azurerm_private_dns_a_record" "wildcard_for_app_services" {
   name                = "*"
   zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
   resource_group_name = azurerm_resource_group.ase.name
@@ -88,7 +88,7 @@ resource "azurerm_dns_a_record" "wildcard_for_app_services" {
   records             = azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses
 }
 
-resource "azurerm_dns_a_record" "wildcard_for_kudu" {
+resource "azurerm_private_dns_a_record" "wildcard_for_kudu" {
   name                = "*.scm"
   zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
   resource_group_name = azurerm_resource_group.ase.name
@@ -96,7 +96,7 @@ resource "azurerm_dns_a_record" "wildcard_for_kudu" {
   records             = azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses
 }
 
-resource "azurerm_dns_a_record" "root_domain" {
+resource "azurerm_private_dns_a_record" "root_domain" {
   name                = "@"
   zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
   resource_group_name = azurerm_resource_group.ase.name
