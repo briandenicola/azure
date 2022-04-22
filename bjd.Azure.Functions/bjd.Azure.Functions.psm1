@@ -235,6 +235,27 @@ function Invoke-AzRestMethod {
 
 }
 
+function Split-AzResourceID {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string] $ResourceID
+    )
+
+    $MatchString = "/subscriptions/(.*)/resourcegroups/(.*)/providers/(.*)/(.*)"
+
+    if( $ResourceID.ToLower() -match $MatchString ) {
+        return [ordered]@{
+            SubscriptionID      = $Matches[1]
+            ResourceGroupName   = $Matches[2]
+            ResourceType        = $Matches[3]
+            ResourceName        = $Matches[4]
+        }
+    }
+    else {
+        throw "Could not parse Resource ID.  Is it a valid Azure Resource ID?"
+    }
+}
+
 $FuncsToExport = @(
     "Invoke-AzRestMethod",
     "Get-AzCachedAccessToken", 
@@ -245,6 +266,7 @@ $FuncsToExport = @(
     "New-APIMHeader", 
     "Connect-ToAzureVPN", 
     "Convert-CertificatetoBase64",
-    "Get-AzVPNStatus"
+    "Get-AzVPNStatus",
+    "Split-AzResourceID"
 )
 Export-ModuleMember -Function  $FuncsToExport
