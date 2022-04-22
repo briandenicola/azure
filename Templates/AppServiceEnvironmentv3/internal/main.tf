@@ -10,7 +10,8 @@ resource "random_pet" "this" {
 locals {
   resource_name               = "${random_pet.this.id}-${random_id.this.dec}"
   ase_name                    = "${local.resource_name}-ase"
-  resource_group_name         = "DevSub01_ASEv3_RG"
+  resource_group_name         = "${local.resource_name}_rg"
+  location                    = "southcentralus"
   network_resource_group_name = "DevSub01_Network_RG"
   virtual_network_name        = "DevSub01-VNet-001"
   subnet_name                 = "ase"
@@ -31,8 +32,9 @@ provider "azurerm" {
   features  {}
 }
 
-data "azurerm_resource_group" "ase" {
-  name = local.resource_group_name
+resource "azurerm_resource_group" "ase" {
+  name      = local.resource_group_name
+  location  = local.location
 }
 
 data "azurerm_virtual_network" "vnet001" {
@@ -48,12 +50,12 @@ data "azurerm_subnet" "ase" {
 
 resource "azurerm_private_dns_zone" "appserviceenvironment_net" {
   name                      = "${local.ase_name}.appserviceenvironment.net"
-  resource_group_name       = data.azurerm_resource_group.ase.name
+  resource_group_name       = azurerm_resource_group.ase.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "appserviceenvironment_net_link" {
   name                  = "${local.ase_name}-link"
-  resource_group_name   = data.azurerm_resource_group.ase.name
+  resource_group_name   = azurerm_resource_group.ase.name
 
   private_dns_zone_name = azurerm_private_dns_zone.appserviceenvironment_net.name
   virtual_network_id    = data.azurerm_virtual_network.vnet001.id
@@ -61,7 +63,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appserviceenvironment_
 
 resource "azurerm_app_service_environment_v3" "ase3" {
   name                          	        = "${local.ase_name}"
-  resource_group_name                     = data.azurerm_resource_group.ase.name
+  resource_group_name                     = azurerm_resource_group.ase.name
   subnet_id                               = data.azurerm_subnet.ase.id
   internal_load_balancing_mode            = "Web, Publishing" 
   allow_new_private_endpoint_connections  = false
@@ -78,34 +80,34 @@ resource "azurerm_app_service_environment_v3" "ase3" {
   }
 }
 
-resource "azurerm_dns_a_record" "wildcard_for_app_services" {
+resource "azurerm_private_dns_a_record" "wildcard_for_app_services" {
   name                = "*"
   zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
-  resource_group_name = data.azurerm_resource_group.ase.name
+  resource_group_name = azurerm_resource_group.ase.name
   ttl                 = 300
-  records             = [ azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses ]
+  records             = azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses
 }
 
-resource "azurerm_dns_a_record" "wildcard_for_kudu" {
+resource "azurerm_private_dns_a_record" "wildcard_for_kudu" {
   name                = "*.scm"
   zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
-  resource_group_name = data.azurerm_resource_group.ase.name
+  resource_group_name = azurerm_resource_group.ase.name
   ttl                 = 300
-  records             = [ azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses ]
+  records             = azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses
 }
 
-resource "azurerm_dns_a_record" "root_domain" {
+resource "azurerm_private_dns_a_record" "root_domain" {
   name                = "@"
   zone_name           = azurerm_private_dns_zone.appserviceenvironment_net.name
-  resource_group_name = data.azurerm_resource_group.ase.name
+  resource_group_name = azurerm_resource_group.ase.name
   ttl                 = 300
-  records             = [ azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses ]
+  records             = azurerm_app_service_environment_v3.ase3.internal_inbound_ip_addresses
 }
 
 resource "azurerm_service_plan" "app_service_plan_windows" {
   name                         = "${local.resource_name}-windows-hosting"
-  resource_group_name          = data.azurerm_resource_group.ase.name
-  location                     = data.azurerm_resource_group.ase.location
+  resource_group_name          = azurerm_resource_group.ase.name
+  location                     = azurerm_resource_group.ase.location
   os_type                      = "Windows"
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
   sku_name                     = "I2v2"
@@ -114,8 +116,8 @@ resource "azurerm_service_plan" "app_service_plan_windows" {
 
 resource "azurerm_service_plan" "app_service_plan_linux" {
   name                         = "${local.resource_name}-linux-hosting"
-  resource_group_name          = data.azurerm_resource_group.ase.name
-  location                     = data.azurerm_resource_group.ase.location
+  resource_group_name          = azurerm_resource_group.ase.name
+  location                     = azurerm_resource_group.ase.location
   os_type                      = "Linux"
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
   sku_name                     = "I2v2"
@@ -124,8 +126,8 @@ resource "azurerm_service_plan" "app_service_plan_linux" {
 
 resource "azurerm_windows_web_app" "windows_webapp" {
   name                = "01"
-  location            = data.azurerm_resource_group.ase.location
-  resource_group_name = data.azurerm_resource_group.ase.name
+  location            = azurerm_resource_group.ase.location
+  resource_group_name = azurerm_resource_group.ase.name
   service_plan_id     = azurerm_service_plan.app_service_plan_windows.id
 
   identity {
@@ -142,8 +144,8 @@ resource "azurerm_windows_web_app" "windows_webapp" {
 
 resource "azurerm_linux_web_app" "linux_webapp" {
   name                = "02"
-  location            = data.azurerm_resource_group.ase.location
-  resource_group_name = data.azurerm_resource_group.ase.name
+  location            = azurerm_resource_group.ase.location
+  resource_group_name = azurerm_resource_group.ase.name
   service_plan_id     = azurerm_service_plan.app_service_plan_linux.id
 
   identity {
