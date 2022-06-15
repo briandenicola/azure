@@ -1,0 +1,50 @@
+name: PowerShell Publish Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The Release tag for this run'
+        required: true
+        default: '1.0.12'
+jobs:
+  create_release_tag:
+    runs-on: windows-latest
+            
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.tag }}
+        release_name: Release ${{ github.event.inputs.tag }}
+        draft: false
+        prerelease: false
+    
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+  create_release:
+    needs: create_release_tag
+    runs-on: windows-latest
+            
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Compress module
+      shell: pwsh
+      run: |
+        Compress-Archive -Path bjd.Azure.Functions -DestinationPath bjd.Azure.Functions-${{ github.event.inputs.tag }}.zip
+    
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release_tag.outputs.upload_url }}
+        asset_path: bjd.Azure.Functions-${{ github.event.inputs.tag }}.zip
+        asset_name: bjd.Azure.Functions-${{ github.event.inputs.tag }}.zip
+        asset_content_type: application/zip
