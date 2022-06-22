@@ -1,4 +1,54 @@
 Set-Variable -Name config -Value (Get-Content -Raw (Join-Path -Path $PSScriptRoot -ChildPath "bjd.Azure.Config.json") | ConvertFrom-Json)
+
+function Get-KubernetesSecret
+{
+    param(
+        [string] $secret,
+        [string] $key
+    )
+
+    $encoded_key = kubectl get secret $secret -o json | ConvertFrom-Json
+    return ConvertFrom-Base64EncodedString($encoded_key.data.$key)
+}
+
+function Copy-PathtoStorage
+{
+    param(
+        [string] $StorageAccount,
+        [string] $Container = "`$web",
+        [string] $LocalPath
+    )
+
+    function Add-Quotes {
+        begin {
+            $quotedText = [string]::empty
+        }
+        process {
+            $quotedText = "`"{0}`"" -f $_
+        }
+        end {
+            return $quotedText
+        }
+    }
+
+    $source = ("{0}/*" -f $LocalPath) | Add-Quotes 
+    az storage copy --source $source --account-name $StorageAccount --destination-container $Container --recursive --put-md5
+}
+
+function Add-IPtoAksAllowedRange 
+{
+    param(
+        [string] $IP,
+        [string] $AKSCluster,
+        [string] $ResourceGroup
+    )
+
+    $range = @(az aks show -n $AKSCluster -g $ResourceGroup --query apiServerAccessProfile.authorizedIpRanges -o tsv)
+    $range += $IP
+    
+    return ([string]::Join(',', $range))
+}
+
 function Convert-CertificatetoBase64 {
     param(
         [Parameter(Mandatory=$true)]
