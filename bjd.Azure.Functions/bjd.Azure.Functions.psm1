@@ -307,6 +307,9 @@ function Split-AzResourceID {
 }
 
 $FuncsToExport = @(
+    "Add-IPtoAksAllowedRange",
+    "Copy-PathtoStorage",
+    "Get-KubernetesSecret",
     "Invoke-CustomAzRestMethod",
     "Get-AzCachedAccessToken", 
     "New-AzureVM",
