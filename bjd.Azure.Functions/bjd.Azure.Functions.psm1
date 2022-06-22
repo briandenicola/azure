@@ -156,7 +156,7 @@ function Connect-ToAzureVPN {
 function New-AzureVM {
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet("BJD_APP01_Subscription", "BJD_APP02_Subscription", "BJD_Core_Subscription")]
+        [ValidateSet("BJD_APPS_Subscription", "BJD_AKS_Subscription", "BJD_Core_Subscription")]
         [string] $SubscriptionName,
     
         [Parameter(Mandatory=$true)]
@@ -259,7 +259,7 @@ function Get-AzCachedAccessToken {
     return $token.AccessToken
 }
 
-function Invoke-AzRestMethod {
+function Invoke-CustomAzRestMethod {
     param(
         [Parameter(Mandatory=$true)]
         [ValidateSet("GET","POST", "PUT")]
@@ -307,7 +307,7 @@ function Split-AzResourceID {
 }
 
 $FuncsToExport = @(
-    "Invoke-AzRestMethod",
+    "Invoke-CustomAzRestMethod",
     "Get-AzCachedAccessToken", 
     "New-AzureVM",
     "Get-AzAdminPassword",
