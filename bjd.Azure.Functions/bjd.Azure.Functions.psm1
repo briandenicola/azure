@@ -306,6 +306,66 @@ function Split-AzResourceID {
     }
 }
 
+function Get-AzWebAppFileSystemQuotaUsed {
+    param(
+        [Parameter(
+           ParameterSetName = "All",
+           Mandatory = $true)]
+        [String] $SubscriptionName,
+
+        [Parameter(
+            ParameterSetName = "Specfic",
+            Mandatory = $true)]
+        [String] $ResourceGroupName,
+
+        [Parameter(
+            ParameterSetName = "Specfic",
+            Mandatory = $true)]
+        [String] $AppServicePlanName
+    )
+    
+    function Format-Quota {
+        param(
+            [Parameter(
+                Mandatory = $true,
+                ValueFromPipeline = $true)
+             ]
+            [Object[]] $Value
+        )
+
+        return [math]::Round(
+            ($Value | Where-Object { $_.name.value -eq "FileSystemStorage" } | Select-Object -ExpandProperty CurrentValue)/1mb, 2
+        )
+    }
+
+    $uri = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/serverfarms/{2}/usages?api-version=2020-12-01"
+
+    switch ($PsCmdlet.ParameterSetName) { 
+        "Specfic" { 
+            $sites = @(Get-AzAppServicePlan -ResourceGroupName $ResourceGroupName -Name $AppServicePlanName)
+        }
+        "All" {
+            Select-AzSubscription -SubscriptionName $SubscriptionName | Out-Null
+            $sites = @(Get-AzAppServicePlan)
+        }
+    }
+
+    $usageTotals = @()
+    foreach( $site in $sites ) {
+        $fqdnUri = $uri -f $site.Subscription, $site.ResourceGroup, $site.Name
+
+        $usage = Invoke-AzRestMethod -Uri $fqdnUri | Select-Object -ExpandProperty Content | ConvertFrom-Json
+        
+        $usageTotals += (New-Object psobject -Property @{
+            AppServicePlan  = $site.Name
+            ResourceGroup   = $site.ResourceGroup
+            QuotaUsed       = Format-Quota -Value $usage.Value 
+        })
+    }
+
+    return $usageTotals
+}
+
 $FuncsToExport = @(
     "Add-IPtoAksAllowedRange",
     "Copy-PathtoStorage",
@@ -320,6 +380,7 @@ $FuncsToExport = @(
     "Connect-ToAzureVPN", 
     "Convert-CertificatetoBase64",
     "Get-AzVPNStatus",
-    "Split-AzResourceID"
+    "Split-AzResourceID",
+    "Get-AzWebAppFileSystemQuotaUsed"
 )
 Export-ModuleMember -Function  $FuncsToExport
