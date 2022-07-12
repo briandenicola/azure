@@ -309,9 +309,14 @@ function Split-AzResourceID {
 function Get-AzWebAppFileSystemQuotaUsed {
     param(
         [Parameter(
-           ParameterSetName = "All",
-           Mandatory = $true)]
+            Mandatory = $true)]
         [String] $SubscriptionName,
+
+        [Parameter(
+            ParameterSetName = "All",
+            Mandatory = $true)]
+        [Switch] $All,
+
 
         [Parameter(
             ParameterSetName = "Specfic",
@@ -329,14 +334,16 @@ function Get-AzWebAppFileSystemQuotaUsed {
             [Parameter(
                 Mandatory = $true,
                 ValueFromPipeline = $true)
-             ]
+            ]
             [Object[]] $Value
         )
 
         return [math]::Round(
-            ($Value | Where-Object { $_.name.value -eq "FileSystemStorage" } | Select-Object -ExpandProperty CurrentValue)/1mb, 2
+            ($Value | Select-Object -ExpandProperty CurrentValue)/1mb, 2
         )
     }
+
+    Select-AzSubscription -SubscriptionName $SubscriptionName | Out-Null
 
     $uri = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/serverfarms/{2}/usages?api-version=2020-12-01"
 
@@ -345,7 +352,6 @@ function Get-AzWebAppFileSystemQuotaUsed {
             $sites = @(Get-AzAppServicePlan -ResourceGroupName $ResourceGroupName -Name $AppServicePlanName)
         }
         "All" {
-            Select-AzSubscription -SubscriptionName $SubscriptionName | Out-Null
             $sites = @(Get-AzAppServicePlan)
         }
     }
@@ -359,7 +365,7 @@ function Get-AzWebAppFileSystemQuotaUsed {
         $usageTotals += (New-Object psobject -Property @{
             AppServicePlan  = $site.Name
             ResourceGroup   = $site.ResourceGroup
-            QuotaUsed       = Format-Quota -Value $usage.Value 
+            QuotaUsed       = $usage.Value | Where-Object { $_.name.value -eq "FileSystemStorage" } | Format-Quota
         })
     }
 

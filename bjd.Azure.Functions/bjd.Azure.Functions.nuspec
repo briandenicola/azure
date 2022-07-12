@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>bjd.Azure.Functions</id>
-    <version>1.0.15</version>
+    <version>1.0.15.1</version>
     <authors>Brian Denicola</authors>
     <owners>Brian Denicola</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
