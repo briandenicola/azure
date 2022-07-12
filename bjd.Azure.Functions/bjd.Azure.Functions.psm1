@@ -335,11 +335,16 @@ function Get-AzWebAppFileSystemQuotaUsed {
                 Mandatory = $true,
                 ValueFromPipeline = $true)
             ]
-            [Object[]] $Value
+            [Object] $Value,
+
+            [Parameter(
+                Mandatory = $true)
+            ]
+            [string] $Property
         )
 
         return [math]::Round(
-            ($Value | Select-Object -ExpandProperty CurrentValue)/1mb, 2
+            ($Value | Select-Object -ExpandProperty $property)/1mb, 2
         )
     }
 
@@ -356,17 +361,24 @@ function Get-AzWebAppFileSystemQuotaUsed {
         }
     }
 
-    $usageTotals = @()
+    $usageTotals = [System.Collections.ArrayList]::new()
     foreach( $site in $sites ) {
         $fqdnUri = $uri -f $site.Subscription, $site.ResourceGroup, $site.Name
 
         $usage = Invoke-AzRestMethod -Uri $fqdnUri | Select-Object -ExpandProperty Content | ConvertFrom-Json
         
-        $usageTotals += (New-Object psobject -Property @{
+        $fileSystemQutoa = $usage.Value | Where-Object { $_.name.value -eq "FileSystemStorage" }
+
+        $properties = [ordered]@{
             AppServicePlan  = $site.Name
             ResourceGroup   = $site.ResourceGroup
-            QuotaUsed       = $usage.Value | Where-Object { $_.name.value -eq "FileSystemStorage" } | Format-Quota
-        })
+            QuotaUsed       = $fileSystemQutoa | Format-Quota -Property CurrentValue
+            QuotaLimit      = $fileSystemQutoa | Format-Quota -Property limit
+        }
+
+        $usageTotals.Add(
+            (New-Object psobject -Property $properties)
+        )
     }
 
     return $usageTotals
