@@ -157,7 +157,7 @@ resource "azurerm_linux_web_app" "linux_webapp" {
 
     application_stack  {
       docker_image = "bjd145.azurecr.io/httpdemo"
-      docker_image_tag = "1256"
+      docker_image_tag = "1286"
     }
   }
 
