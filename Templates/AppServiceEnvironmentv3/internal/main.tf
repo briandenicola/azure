@@ -12,7 +12,7 @@ locals {
   ase_name                    = "${local.resource_name}-ase"
   resource_group_name         = "${local.resource_name}_rg"
   location                    = "southcentralus"
-  network_resource_group_name = "DevSub01_Network_RG"
+  network_resource_group_name = "Apps01_Network_RG"
   virtual_network_name        = "DevSub01-VNet-001"
   subnet_name                 = "ase"
 }
@@ -156,8 +156,8 @@ resource "azurerm_linux_web_app" "linux_webapp" {
     container_registry_use_managed_identity = true
 
     application_stack  {
-      docker_image = "bjd145.azurecr.io/httpdemo"
-      docker_image_tag = "1286"
+      docker_image = "bjdcsa.azurecr.io/httpdemo"
+      docker_image_tag = "1287"
     }
   }
 

@@ -21,7 +21,7 @@ resource "random_pet" "this" {
 locals {
   resource_name               = "${random_pet.this.id}-${random_id.this.dec}"
   location                    = "southcentralus"
-  network_resource_group_name = "DevSub01_Network_RG"
+  network_resource_group_name = "Apps01_Network_RG"
   virtual_network_name        = "DevSub01-VNet-001"
   subnet_name                 = "ase"
   app_name                    = "${local.resource_name}-app"

@@ -20,7 +20,7 @@ data "azurerm_resource_group" "ase" {
 data "azurerm_subnet" "ase" {
   name                 = "asev3"
   virtual_network_name = "DevSub01-VNet-001"
-  resource_group_name  = "DevSub01_Network_RG"
+  resource_group_name  = "Apps01_Network_RG"
 }
 
 resource "azurerm_app_service_environment_v3" "ase3" {
