@@ -15,8 +15,8 @@ jobs:
         $uri = "https://api.github.com/repos/briandenicola/azure/releases/latest"
         $release = Invoke-RestMethod $uri
         $current_version = [Version]::New($release.tag_name)
-        $new_version = [Version]::New($current_version.Major,$current_version.Minor, $current_version.Build + 1).ToString()
-        Write-Output "::set-output name=tag_name::$new_version"
+        $tag_name = [Version]::New($current_version.Major,$current_version.Minor, $current_version.Build + 1).ToString()
+        Write-Output "::set-output name=tag_name::$tag_name"
 
     - name: Create Release
       id: create_release
@@ -31,7 +31,7 @@ jobs:
     
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
-      tag_name: ${{ steps.get_relese.outputs.new_version }}
+      tag_name: ${{ steps.get_relese.outputs.tag_name }}
 
   create_release:
     needs: create_release_tag
