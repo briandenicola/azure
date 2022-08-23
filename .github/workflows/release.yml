@@ -16,6 +16,7 @@ jobs:
         $release = Invoke-RestMethod $uri
         $current_version = [Version]::New($release.tag_name)
         $new_version = [Version]::New($current_version.Major,$current_version.Minor, $current_version.Build + 1).ToString()
+        Write-Output "New Version - {0}" -f $new_version
         Write-Output "::workflow-command tag_name={$new_version}"
 
     - name: Create Release
