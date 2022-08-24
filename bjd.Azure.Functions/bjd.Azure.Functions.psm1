@@ -1,5 +1,3 @@
-Set-Variable -Name config -Value (Get-Content -Raw (Join-Path -Path $PSScriptRoot -ChildPath "bjd.Azure.Config.json") | ConvertFrom-Json)
-
 function Get-KubernetesSecret
 {
     param(
@@ -67,18 +65,6 @@ function Convert-CertificatetoBase64 {
     return $base64Cert
 }
 
-function Get-AzAdminPassword {
-    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.admin -CopytoClipboard
-}
-
-function Get-AzDevOpsToken {
-    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.Token -CopytoClipboard
-}
-
-function Get-AzServicePrincipalSecret {
-    Get-KeyVaultSecret -KeyVaultName $config.keyVault.VaultName -SecretName $config.keyVault.secrets.Secret -CopytoClipboard
-}
-
 function Get-KeyVaultSecret {
     param(
         [string] $KeyVaultName,
@@ -111,23 +97,26 @@ function New-APIMHeader {
 
 function Get-AzVPNStatus {
     [CmdletBinding()]
-    param()
+    param(
+        [Parameter(Mandatory=$true, HelpMessage='Enter the Name of the VPN Connection')]
+        [string] $VPNConnectionName
+    )
 
-    $VPNConnectionName = $config.VPNConnectionName 
     Write-Verbose -Message ("[{0}] - Checking Connection status - {1} . . ." -f (Get-Date), $VPNConnectionName)
     Get-NetIPAddress -InterfaceAlias $VPNConnectionName  -ErrorAction SilentlyContinue 
     return $?
 }
 
-function Connect-ToAzureVPN {
+function Connect-ToClassicAzureVPN {
     [CmdletBinding()]
-    param ( 
+    param (
+        [Parameter(Mandatory=$true, HelpMessage='Enter the Name of the VPN Connection')]
+        [string] $VPNConnectionName,
         [Parameter(Mandatory=$false, HelpMessage='Enter a valid Destination Prefix in the format `"w.x.y.z/a`"')] 
         [ValidatePattern("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$")]
         [string[]] $RemoteNetworkPrefixs = @("10.1.0.0/16","10.2.0.0/16", "10.5.0.0/16", "10.25.0.0/16"),
         [switch] $Disconnect
     )
-    $VPNConnectionName = $config.VPNConnectionName
 
     $VPNPhonebook      = Join-Path -Path $ENV:APPDATA -ChildPath ("Microsoft\Network\Connections\Cm\{0}\{0}.pbk" -f $VPNConnectionName)
 
@@ -156,19 +145,27 @@ function Connect-ToAzureVPN {
 function New-AzureVM {
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet("BJD_APPS_Subscription", "BJD_AKS_Subscription", "BJD_Core_Subscription")]
         [string] $SubscriptionName,
     
         [Parameter(Mandatory=$true)]
         [ValidateSet("Standard_B4ms", "Standard_B1ms", "Standard_DS3_v2", "Standard_F4s_v2")]
         [string] $VMSize,
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$true)]
         [string] $VnetResourceGroupName,
     
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$true)]
         [string] $VnetName,
-    
+
+        [Parameter(Mandatory=$false)]
+        [string] $SubnetName = "Servers",
+
+        [Parameter(Mandatory=$false)]
+        [string] $adminUser = "azureuser",
+
+        [Parameter(Mandatory=$false)]
+        [string] $timeZone = "Central Standard Time",
+
         [switch] $Linux,
         [switch] $DisableAADJoin
     )
@@ -179,27 +176,19 @@ function New-AzureVM {
     $vmNic      = "{0}-nic" -f $vmName
     $vmDisk     = "{0}-osdrive" -f $vmName
 
-    $adminUser  = $config.vmSettings.adminUser 
-    $timeZone   = $config.vmSettings.timeZone                    
-    $subnet     = $config.vmSettings.subnet
-    $role       = $config.vmSettings.role
-    $account    = $config.vmSettings.account
+    $role       = "Virtual Machine Administrator Login"
+    $account    = (Get-AzAccessToken).UserId
 
     $vmConfig = @{}
-    if( -not([string]::IsNullOrEmpty($VnetResourceGroupName)) -and -not([string]::IsNullOrEmpty($VnetName)) ){
-        $vmConfig.Add('ResourceGroupName',$VnetResourceGroupName)
-        $vmConfig.Add('VnetResourceGroupName', $VnetResourceGroupName)
-        $vmConfig.Add('VnetName', $VnetName)
-        $vmConfig.Add('Location', (Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName | Select-Object -ExpandProperty Location))
-    }
-    else {
-        $vmConfig = $config.vmSettings.AzureSettings | Where-Object { $_.SubscriptionName -eq $SubscriptionName }
-    }
+    $vmConfig.Add('ResourceGroupName',$VnetResourceGroupName)
+    $vmConfig.Add('VnetResourceGroupName', $VnetResourceGroupName)
+    $vmConfig.Add('VnetName', $VnetName)
+    $vmConfig.Add('Location', (Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName | Select-Object -ExpandProperty Location))
     
     New-AzResourceGroup -Name $vmConfig.ResourceGroupName -Location $vmConfig.Location 
     
     $vnet = Get-AzVirtualNetwork -Name $vmConfig.VnetName -ResourceGroupName $vmConfig.VnetResourceGroupName
-    $subnetId = Get-AzVirtualNetworkSubnetConfig -Name $subnet -VirtualNetwork $vnet | Select-Object -Expand id
+    $subnetId = Get-AzVirtualNetworkSubnetConfig -Name $SubnetName -VirtualNetwork $vnet | Select-Object -Expand id
     
     $startTime = Get-Date
     
@@ -395,7 +384,7 @@ $FuncsToExport = @(
     "Get-AzDevOpsToken",
     "Get-AzServicePrincipalSecret",
     "New-APIMHeader", 
-    "Connect-ToAzureVPN", 
+    "Connect-ToAClassicAzureVPN", 
     "Convert-CertificatetoBase64",
     "Get-AzVPNStatus",
     "Split-AzResourceID",
