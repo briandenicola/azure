@@ -1,0 +1,18 @@
+version: '3'
+  
+tasks:
+  up:
+    desc: Creates Azure infrastructure and deploys application code
+    cmds:
+    - terraform init
+    - terraform apply -auto-approve
+
+  down:
+    desc: Destorys Azure infrastructure and cleans up terraform state files
+    cmds:
+    - cd infrastructure ;
+      rm -rf .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG}} --yes || true
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
