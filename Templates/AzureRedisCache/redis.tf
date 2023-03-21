@@ -9,7 +9,7 @@ resource "azurerm_redis_cache" "this" {
   public_network_access_enabled = false
   minimum_tls_version           = "1.2"
   redis_version                 = "6"
-  shard_count                   = 10
+  shard_count                   = 3
   zones                         = [1, 2, 3]
 
   patch_schedule {
@@ -23,7 +23,7 @@ resource "azurerm_redis_cache" "this" {
     maxmemory_reserved     = 10
     maxmemory_delta        = 2
     maxmemory_policy       = "allkeys-lru"
-    notify_keyspace_events = true
+    notify_keyspace_events = "A"
   }
 }
 
