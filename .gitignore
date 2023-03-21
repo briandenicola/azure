@@ -2,6 +2,11 @@
 Thumbs.db
 ehthumbs.db
 
+# Terraform 
+.terraform.*
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
 
 # Build results
 [Dd]ebug/
