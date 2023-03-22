@@ -24,17 +24,13 @@ resource "random_integer" "vnet_cidr" {
 }
 
 locals {
-    location                    = var.region
+    location                    = var.regions
     resource_name               = "${random_pet.this.id}-${random_id.this.dec}"
-    redis_name                  = "${local.resource_name}cache"
-    vnet_cidr                   = cidrsubnet("10.0.0.0/8", 8, random_integer.vnet_cidr.result)
-    subnet_cidir                = cidrsubnet(local.vnet_cidr, 8, 2)
 }
-
 
 resource "azurerm_resource_group" "this" {
   name                  = "${local.resource_name}_rg"
-  location              = local.location
+  location              = local.location[0]
   
   tags     = {
     Application = "redis"

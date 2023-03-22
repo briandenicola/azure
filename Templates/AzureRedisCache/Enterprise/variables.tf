@@ -4,8 +4,8 @@ variable "certificate_name" {
   default       = "my-wildcard-cert.pfx"
 }
 
-variable "region" {
+variable "regions" {
   description   = "The Azure region to deploy to"
-  type          = string
-  default       = "southcentralus"
+  type          = list(string)
+  default       = ["southcentralus", "eastus2"]
 }
