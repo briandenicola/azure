@@ -1,5 +1,5 @@
 locals {
-  subnets     = [for region in var.regions : cidrsubnet("10.0.0.0/8", 8, index(var.regions, region) + 1)]
+  subnets     = [for region in var.regions : cidrsubnet("10.0.0.0/8", 8, index(var.regions, region) + 137)]
   regions_set = toset(var.regions)
 }
 
