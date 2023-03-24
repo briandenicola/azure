@@ -36,7 +36,7 @@ locals {
   vnet_cidr           = cidrsubnet("10.0.0.0/8", 8, random_integer.vnet_cidr.result)
   master_subnet_cidir = cidrsubnet(local.vnet_cidr, 8, 2)
   worker_subnet_cidir = cidrsubnet(local.vnet_cidr, 7, 2)
-  resource_group_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${local.resource_name}_aro_rg"
+  resource_group_id   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/aro-${var.domain}-${local.location}"
 }
 
 resource "azurerm_resource_group" "this" {

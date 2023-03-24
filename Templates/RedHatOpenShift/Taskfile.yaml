@@ -8,9 +8,11 @@ tasks:
     - terraform workspace new {{.REGION}} || true
     - terraform workspace select {{.REGION}}
     - terraform init
-    - terraform apply -auto-approve -var "region={{.REGION}}"
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "aro_rp_aad_sp_object_id={{.ARO_RP_SPN}}" -compact-warnings
     vars:
       REGION: '{{default "southcentralus" .CLI_ARGS}}' 
+      ARO_RP_SPN:
+        sh: az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv
 
   down:
     desc: Destorys Azure infrastructure and cleans up terraform state files
