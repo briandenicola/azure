@@ -1,0 +1,22 @@
+version: '3'
+  
+tasks:
+  up:
+    desc: Creates Azure infrastructure 
+    cmds:
+    - az provider register --namespace 'Microsoft.RedHatOpenShift' --wait
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    - terraform apply -auto-approve -var "region={{.REGION}}"
+    vars:
+      REGION: '{{default "southcentralus" .CLI_ARGS}}' 
+
+  down:
+    desc: Destorys Azure infrastructure and cleans up terraform state files
+    cmds:
+    - rm -rf .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG}} --yes || true
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
