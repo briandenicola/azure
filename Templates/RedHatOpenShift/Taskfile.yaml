@@ -14,6 +14,17 @@ tasks:
       ARO_RP_SPN:
         sh: az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv
 
+  creds:
+    desc: Get ARO Credentials
+    cmds:
+    - az aro list-credentials --name {{.ARO_NAME}} --resource-group {{.RG}}
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP  
+      ARO_NAME: 
+        sh: terraform output -raw ARO_NAME  
+
+
   down:
     desc: Destorys Azure infrastructure and cleans up terraform state files
     cmds:
