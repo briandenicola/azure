@@ -1,5 +1,3 @@
-
-
 resource "azurerm_role_assignment" "aro_cluster_service_principal_user_access_administrator" {
   scope                = azurerm_resource_group.this.id
   role_definition_name = "User Access Administrator"
@@ -20,7 +18,6 @@ resource "azurerm_role_assignment" "aro_cluster_service_principal_network_contri
   principal_id         = azuread_service_principal.this.object_id
   skip_service_principal_aad_check = true
 }
-
 
 resource "azurerm_role_assignment" "aro_resource_provider_service_principal_network_contributor" {
   scope                = azurerm_virtual_network.this.id
