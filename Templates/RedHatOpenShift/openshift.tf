@@ -16,7 +16,7 @@ resource "azapi_resource" "aro_cluster" {
         serviceCidr          = "100.${random_integer.services_cidr.id}.0.0/16"
       }
       servicePrincipalProfile = {
-        clientId             = azuread_service_principal.this.object_id
+        clientId             = azuread_service_principal.this.application_id
         clientSecret         = azuread_application_password.this.value
       }
       masterProfile = {
