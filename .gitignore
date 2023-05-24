@@ -3,6 +3,7 @@ Thumbs.db
 ehthumbs.db
 
 # Terraform 
+terraform.tfstate.d
 .terraform.*
 .terraform/
 terraform.tfstate
