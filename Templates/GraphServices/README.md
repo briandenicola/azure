@@ -7,8 +7,8 @@ To consume metered APIs and services in Microsoft Graph, the application registr
 Currently the AzureRM provider does not support Graph Services so this method uses the Terraform AzAPI provider to create the resource
 
 ## Reference
-https://learn.microsoft.com/en-us/graph/metered-api-setup?tabs=azurecloudshell#enable-an-application
-https://learn.microsoft.com/en-us/rest/api/graphservices/account/create-and-update?tabs=HTTP
+* https://learn.microsoft.com/en-us/graph/metered-api-setup?tabs=azurecloudshell#enable-an-application
+* https://learn.microsoft.com/en-us/rest/api/graphservices/account/create-and-update?tabs=HTTP
 
 # Deploy
 ```bash
