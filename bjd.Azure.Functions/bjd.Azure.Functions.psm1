@@ -112,9 +112,11 @@ function Connect-ToClassicAzureVPN {
     param (
         [Parameter(Mandatory=$true, HelpMessage='Enter the Name of the VPN Connection')]
         [string] $VPNConnectionName,
+
         [Parameter(Mandatory=$false, HelpMessage='Enter a valid Destination Prefix in the format `"w.x.y.z/a`"')] 
         [ValidatePattern("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$")]
         [string[]] $RemoteNetworkPrefixs = @("10.1.0.0/16","10.2.0.0/16", "10.5.0.0/16", "10.25.0.0/16"),
+        
         [switch] $Disconnect
     )
 
@@ -125,17 +127,22 @@ function Connect-ToClassicAzureVPN {
         return $true
     }
   
-    if(-not(Get-AzVPNStatus)) {
+    if(-not(Get-AzVPNStatus -VPNConnectionName $VPNConnectionName)) {
         Write-Verbose -Message ("[{0}] - Establishing Connection Back to {1} . . ." -f (Get-Date), $VPNConnectionName )
-        rasdial.exe $VPNConnectionName /phonebook:$VPNPhonebook
-        $ip = Get-NetIPAddress -InterfaceAlias $VPNConnectionName | Select-Object -ExpandProperty IPAddress
-        Get-NetRoute -InterfaceAlias $VPNConnectionName | Remove-NetRoute -Confirm:$false
+        #rasdial.exe $VPNConnectionName /phonebook:$VPNPhonebook
+        
+        Start-Process -FilePath $VPNPhonebook -Wait
 
-        foreach( $prefix in $RemoteNetworkPrefixs ) {
-            New-NetRoute -DestinationPrefix $prefix -NextHop $ip -InterfaceAlias $VPNConnectionName
+        if($?) {
+            $ip = Get-NetIPAddress -InterfaceAlias $VPNConnectionName | Select-Object -ExpandProperty IPAddress
+            Get-NetRoute -InterfaceAlias $VPNConnectionName | Remove-NetRoute -Confirm:$false
+
+            foreach( $prefix in $RemoteNetworkPrefixs ) {
+                New-NetRoute -DestinationPrefix $prefix -NextHop $ip -InterfaceAlias $VPNConnectionName
+            }
+
+            Get-NetRoute -InterfaceAlias $VPNConnectionName
         }
-
-        Get-NetRoute -InterfaceAlias $VPNConnectionName
     }
     else {
         Write-Verbose -Message ("[{0}] - Already connected to {1} . . ." -f (Get-Date), $VPNConnectionName ) 
