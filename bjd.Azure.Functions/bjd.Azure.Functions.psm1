@@ -374,18 +374,16 @@ function Get-AzWebAppFileSystemQuotaUsed {
 }
 
 $FuncsToExport = @(
-    "Add-IPtoAksAllowedRange",
-    "Copy-PathtoStorage",
     "Get-KubernetesSecret",
+    "Copy-PathtoStorage",
+    "Add-IPtoAksAllowedRange",
+    "Convert-CertificatetoBase64",
     "Invoke-CustomAzRestMethod",
     "Get-AzCachedAccessToken", 
     "New-AzureVM",
-    "Get-AzAdminPassword",
-    "Get-AzDevOpsToken",
-    "Get-AzServicePrincipalSecret",
+    "Get-KeyVaultSecret",
     "New-APIMHeader", 
-    "Connect-ToAClassicAzureVPN", 
-    "Convert-CertificatetoBase64",
+    "Connect-ToClassicAzureVPN", 
     "Get-AzVPNStatus",
     "Split-AzResourceID",
     "Get-AzWebAppFileSystemQuotaUsed"
