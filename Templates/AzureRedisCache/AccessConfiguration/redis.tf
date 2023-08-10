@@ -30,15 +30,15 @@ resource "azapi_resource" "access_policy_assignment" {
     azapi_resource.access_policy_default 
   ]
   type        = "Microsoft.Cache/Redis/accessPolicyAssignments@2023-05-01-preview"
-  name        = "9f4e1571-e838-4641-989e-af19e5b4ed62"
+  name        = azurerm_user_assigned_identity.this.principal_id 
   parent_id   = azurerm_redis_cache.this.id
 
   body = jsonencode({
-    name = "9f4e1571-e838-4641-989e-af19e5b4ed62",
+    name = azurerm_user_assigned_identity.this.principal_id,
     properties = {
       accessPolicyName = "default",
-      objectId = "9f4e1571-e838-4641-989e-af19e5b4ed62",
-      objectIdAlias = "ewe-61208-httpbin-app-identity"
+      objectId = azurerm_user_assigned_identity.this.principal_id 
+      objectIdAlias = local.identity_name
     }
   })
 }

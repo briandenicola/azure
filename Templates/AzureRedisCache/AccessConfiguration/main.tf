@@ -18,7 +18,7 @@ locals {
   resource_name        = "${random_pet.this.id}-${random_id.this.dec}"
   rg_name              = "${local.resource_name}_rg"
   redis_name           = "${local.resource_name}-cache"
-
+  identity_name        = "${local.resource_name}-identity"
 }
 
 resource "azurerm_resource_group" "this" {
