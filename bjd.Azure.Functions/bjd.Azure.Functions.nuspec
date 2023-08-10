@@ -2,15 +2,15 @@
 <package >
   <metadata>
     <id>bjd.Azure.Functions</id>
-    <version>1.0.17</version>
+    <version>1.0.19</version>
     <authors>Brian Denicola</authors>
     <owners>Brian Denicola</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/briandenicola/Azure</projectUrl>
     <description>A series of Azure functions</description>
-    <releaseNotes>Removed dependency on config file</releaseNotes>
-    <copyright>Copyright 2022</copyright>
+    <releaseNotes>Bug fixes</releaseNotes>
+    <copyright>Copyright 2023</copyright>
     <repository type="git" url="https://github.com/briandenicola/Azure.git" />
     <dependencies/>
   </metadata>
