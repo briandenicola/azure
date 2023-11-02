@@ -1,0 +1,32 @@
+version: '3'
+
+vars:
+  ACR: "bjdcsa"
+  RG: "Core_ContainerRepo_RG"
+
+tasks:
+  up:
+    desc: Creates a complete Azure ML environment 
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    - terraform apply -auto-approve -var "acr_name={{.ACR}}" -var "acr_resource_group={{.RG}}" -compact-warnings
+    vars: 
+      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+
+  login:
+    desc: Gets Token and logs into ACR
+    cmds:
+      - echo {{.ACR_TOKEN}} | docker login --username {{.ACR_TOKEN_NAME}} --password-stdin {{.ACR}}.azurecr.io
+    vars: 
+      ACR_TOKEN: 
+        sh: terraform output -raw ACR_TOKEN
+      ACR_TOKEN_NAME:
+        sh: terraform output -raw ACR_TOKEN_NAME
+
+  down:
+    desc: Destroys all Azure resources and cleans up Terraform
+    cmds:
+    - terraform destroy -auto-approve -var "acr_name={{.ACR}}" -var "acr_resource_group={{.RG}}" -compact-warnings
+    - terraform workspace delete {{.REGION}} -force
