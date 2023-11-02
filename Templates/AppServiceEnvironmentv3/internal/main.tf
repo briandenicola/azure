@@ -12,8 +12,8 @@ locals {
   ase_name                    = "${local.resource_name}-ase"
   resource_group_name         = "${local.resource_name}_rg"
   location                    = "southcentralus"
-  network_resource_group_name = "Apps01_Network_RG"
-  virtual_network_name        = "DevSub01-VNet-001"
+  network_resource_group_name = "Core_Network_RG"
+  virtual_network_name        = "BJD-Core-VNet-001"
   subnet_name                 = "ase"
 }
 
@@ -23,7 +23,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0.2"
+      version = "3.70.0"
     }
   }
 }
@@ -110,7 +110,7 @@ resource "azurerm_service_plan" "app_service_plan_windows" {
   location                     = azurerm_resource_group.ase.location
   os_type                      = "Windows"
   app_service_environment_id   = azurerm_app_service_environment_v3.ase3.id
-  sku_name                     = "I2v2"
+  sku_name                     = "I4v2"
   worker_count                 = 3
 }
 
