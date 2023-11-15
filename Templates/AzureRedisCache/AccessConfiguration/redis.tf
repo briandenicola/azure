@@ -9,8 +9,7 @@ resource "azurerm_redis_cache" "this" {
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {
-  }
+  redis_configuration {}
 }
 
 resource "azapi_resource" "access_policy_default" {
