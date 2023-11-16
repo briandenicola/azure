@@ -40,12 +40,12 @@ resource "azurerm_private_endpoint" "primary" {
 
 resource "azurerm_redis_enterprise_database" "this" {
   name                = "default"
-  resource_group_name = azurerm_resource_group.this.name
+  #resource_group_name = azurerm_resource_group.this.name
 
   cluster_id        = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "AllKeysRandom"
+  eviction_policy   = "NoEviction"
   port              = 10000
 
   module {
