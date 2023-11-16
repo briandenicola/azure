@@ -9,7 +9,22 @@ resource "azurerm_redis_cache" "this" {
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {}
+  redis_configuration {
+  }
+}
+
+resource "azapi_update_resource" "redis" {
+  type          = "Microsoft.Cache/Redis@2023-08-01"
+  resource_id   = azurerm_redis_cache.this.id
+
+  body = jsonencode({
+    properties = {
+      redisConfiguration = {
+        maxmemory-policy = "volatile-lru"
+        aad-enabled =  "True"
+      }
+    }
+  })
 }
 
 resource "azapi_resource" "access_policy_default" {
