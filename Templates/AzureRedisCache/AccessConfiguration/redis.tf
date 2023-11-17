@@ -14,7 +14,7 @@ resource "azurerm_redis_cache" "this" {
 }
 
 resource "azapi_update_resource" "redis" {
-  type          = "Microsoft.Cache/Redis@2023-08-01"
+  type          = "Microsoft.Cache/Redis@2023-05-01-preview"
   resource_id   = azurerm_redis_cache.this.id
 
   body = jsonencode({
