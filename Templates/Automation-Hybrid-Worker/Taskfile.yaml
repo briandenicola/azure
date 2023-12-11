@@ -14,5 +14,8 @@ tasks:
   down:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:
-    - terraform destroy -auto-approve -compact-warnings
-    - terraform workspace delete {{.REGION}} -force
+      - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+      - az group delete -n {{.RG}} --yes || true
+    vars:
+      RG:
+        sh: terraform  output -raw AKS_RESOURCE_GROUP
