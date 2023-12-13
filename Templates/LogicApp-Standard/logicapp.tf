@@ -21,7 +21,14 @@ resource "azurerm_logic_app_standard" "this" {
   }
 
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"     = "node"
-    "WEBSITE_NODE_DEFAULT_VERSION" = "~18"
+    "FUNCTIONS_WORKER_RUNTIME"             = "node"
+    "FUNCTIONS_EXTENSION_VERSION"          = "~4"
+    "WEBSITE_CONTENTOVERVNET"              = "1"
+    "AzureWebJobsStorage__accountName"     = azurerm_storage_account.this.name
+    "AzureWebJobsStorage__clientId"        = azurerm_user_assigned_identity.this.client_id
+    "AzureWebJobsStorage__queueServiceUri" = "https://${azurerm_storage_account.this.name}.queue.core.windows.net"
+    "AzureWebJobsStorage__tableServiceUri" = "https://${azurerm_storage_account.this.name}.table.core.windows.net"
+    "AzureWebJobsStorage__blobServiceUri"  = "https://${azurerm_storage_account.this.name}.blob.core.windows.net"
+    "AzureWebJobsStorage__fileServiceUri"  = "https://${azurerm_storage_account.this.name}.file.core.windows.net"
   }
 }
