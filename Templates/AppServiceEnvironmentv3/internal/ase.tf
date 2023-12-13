@@ -23,7 +23,7 @@ resource "azurerm_service_plan" "app_service_plan_windows" {
   location                     = azurerm_resource_group.this.location
   os_type                      = "Windows"
   app_service_environment_id   = azurerm_app_service_environment_v3.this.id
-  sku_name                     = "I4v2"
+  sku_name                     = "I2v2"
   worker_count                 = 3
 }
 
