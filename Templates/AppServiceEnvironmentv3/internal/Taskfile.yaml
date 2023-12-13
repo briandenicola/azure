@@ -1,0 +1,43 @@
+version: '3'
+
+tasks:
+  up:
+    desc: Builds end to end an ASEv3 Internal environment
+    cmds:
+    - task: init
+    - task: apply
+    vars:
+      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+
+  init: 
+    desc: Initializes Terraform
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    vars:
+      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+
+  apply: 
+    desc: Applies Terraform configuration
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}"
+    vars:
+      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+
+  plan:
+    desc: Reviews Terraform plan
+    cmds:
+    - terraform plan -var "region={{.REGION}}"
+    vars:
+      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+    
+  down:
+    desc: Destroys all Azure resources and cleans up terraform
+    cmds:
+    - cd infrastructure ;
+      rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG}} --yes || true
+    vars:
+      RG: 
+        sh: terraform output -raw ASE_RESOURCE_GROUP
