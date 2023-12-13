@@ -10,13 +10,13 @@ resource "azurerm_storage_account" "this" {
 }
 
 resource "azurerm_private_endpoint" "blob_private_endpoint" {
-  name                      = "${local.storage_account_name_name}-ep"
+  name                      = "${local.storage_account_name_name}-blob-ep"
   resource_group_name       = azurerm_resource_group.this.name
   location                  = azurerm_resource_group.this.location
   subnet_id                 = data.azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.storage_account_name_name}-ep"
+    name                           = "${local.storage_account_name_name}-blob-ep"
     private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = [ "blob" ]
     is_manual_connection           = false
@@ -29,13 +29,13 @@ resource "azurerm_private_endpoint" "blob_private_endpoint" {
 }
 
 resource "azurerm_private_endpoint" "file_private_endpoint" {
-  name                      = "${local.storage_account_name_name}-ep"
+  name                      = "${local.storage_account_name_name}-file-ep"
   resource_group_name       = azurerm_resource_group.this.name
   location                  = azurerm_resource_group.this.location
   subnet_id                 = data.azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.storage_account_name_name}-ep"
+    name                           = "${local.storage_account_name_name}-file-ep"
     private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = [ "file" ]
     is_manual_connection           = false
@@ -48,13 +48,13 @@ resource "azurerm_private_endpoint" "file_private_endpoint" {
 }
 
 resource "azurerm_private_endpoint" "queue_private_endpoint" {
-  name                      = "${local.storage_account_name_name}-ep"
+  name                      = "${local.storage_account_name_name}-queue-ep"
   resource_group_name       = azurerm_resource_group.this.name
   location                  = azurerm_resource_group.this.location
   subnet_id                 = data.azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.storage_account_name_name}-ep"
+    name                           = "${local.storage_account_name_name}-queue-ep"
     private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = [ "queue" ]
     is_manual_connection           = false
@@ -67,13 +67,13 @@ resource "azurerm_private_endpoint" "queue_private_endpoint" {
 }
 
 resource "azurerm_private_endpoint" "table_private_endpoint" {
-  name                      = "${local.storage_account_name_name}-ep"
+  name                      = "${local.storage_account_name_name}-table-ep"
   resource_group_name       = azurerm_resource_group.this.name
   location                  = azurerm_resource_group.this.location
   subnet_id                 = data.azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.storage_account_name_name}-ep"
+    name                           = "${local.storage_account_name_name}-table-ep"
     private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = [ "table" ]
     is_manual_connection           = false
