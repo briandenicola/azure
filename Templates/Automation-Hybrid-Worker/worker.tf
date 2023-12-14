@@ -1,6 +1,6 @@
 resource "azurerm_network_interface" "this" {
   count               = var.number_of_runners
-  name                = "${local.vm_name}-${count.index}-nic"
+  name                = "${local.vm_name}-${substr(random_uuid.id[count.index].result,0,3)}-nic"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 
@@ -13,7 +13,7 @@ resource "azurerm_network_interface" "this" {
 
 resource "azurerm_linux_virtual_machine" "this" {
   count               = var.number_of_runners
-  name                = "${local.vm_name}-${count.index}"
+  name                = "${local.vm_name}-${substr(random_uuid.id[count.index].result,0,3)}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   admin_username      = "manager"
@@ -36,7 +36,7 @@ resource "azurerm_linux_virtual_machine" "this" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    name                 = "${local.vm_name}-${count.index}-osdisk"
+    name                 = "${local.vm_name}-${substr(random_uuid.id[count.index].result,0,3)}-osdisk"
   }
 
   source_image_reference {
@@ -49,7 +49,7 @@ resource "azurerm_linux_virtual_machine" "this" {
 
 resource "azurerm_virtual_machine_extension" "this" {
     count                = var.number_of_runners
-    name                 = "${local.vm_name}-${count.index}"
+    name                 = "hybrid-worker-install"
     virtual_machine_id   = azurerm_linux_virtual_machine.this[count.index].id
     publisher            = "Microsoft.Azure.Automation.HybridWorker"
     type                 = "HybridWorkerForLinux"
