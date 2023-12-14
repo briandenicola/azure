@@ -1,5 +1,6 @@
 resource "azurerm_network_interface" "this" {
-  name                = "${local.vm_name}-nic"
+  count               = var.number_of_runners
+  name                = "${local.vm_name}-${count.index}-nic"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 
@@ -11,14 +12,15 @@ resource "azurerm_network_interface" "this" {
 }
 
 resource "azurerm_linux_virtual_machine" "this" {
-  name                = local.vm_name
+  count               = var.number_of_runners
+  name                = "${local.vm_name}-${count.index}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   admin_username      = "manager"
   size                = var.vm_sku
 
   network_interface_ids = [
-    azurerm_network_interface.this.id,
+    azurerm_network_interface.this[count.index].id,
   ]
 
   identity {
@@ -34,7 +36,7 @@ resource "azurerm_linux_virtual_machine" "this" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    name                 = "${local.vm_name}-osdisk"
+    name                 = "${local.vm_name}-${count.index}-osdisk"
   }
 
   source_image_reference {
@@ -46,8 +48,9 @@ resource "azurerm_linux_virtual_machine" "this" {
 }
 
 resource "azurerm_virtual_machine_extension" "this" {
-    name                 = local.vm_name
-    virtual_machine_id   = azurerm_linux_virtual_machine.this.id
+    count                = var.number_of_runners
+    name                 = "${local.vm_name}-${count.index}"
+    virtual_machine_id   = azurerm_linux_virtual_machine.this[count.index].id
     publisher            = "Microsoft.Azure.Automation.HybridWorker"
     type                 = "HybridWorkerForLinux"
     type_handler_version = "1.1"
@@ -62,8 +65,9 @@ SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "powershell" {
+  count                = var.number_of_runners
   name                 = "powershell-install"
-  virtual_machine_id   = azurerm_linux_virtual_machine.this.id
+  virtual_machine_id   = azurerm_linux_virtual_machine.this[count.index].id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"

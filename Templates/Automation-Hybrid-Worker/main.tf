@@ -14,6 +14,7 @@ resource "random_pet" "this" {
 }
 
 resource "random_uuid" "id" {
+  count = var.number_of_runners
 }
 
 resource "random_integer" "vnet_cidr" {

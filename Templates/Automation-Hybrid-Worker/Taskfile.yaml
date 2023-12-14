@@ -1,5 +1,8 @@
 version: '3'
 
+env:
+  VM_COUNT: 2
+
 tasks:
   up:
     desc: Creates a complete Azure ML environment 
@@ -7,7 +10,7 @@ tasks:
     - terraform workspace new {{.REGION}} || true
     - terraform workspace select {{.REGION}}
     - terraform init
-    - terraform apply -auto-approve -var "region={{.REGION}}" -compact-warnings
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "number_of_runners={{.VM_COUNT}}" -compact-warnings
     vars: 
       REGION: '{{default "southcentralus" .CLI_ARGS}}'
 
