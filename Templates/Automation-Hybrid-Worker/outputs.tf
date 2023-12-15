@@ -3,7 +3,12 @@ output "RESOURCE_GROUP" {
     sensitive = false
 }
 
-output "VM_PRIVATE_KEY" {
-    value = tls_private_key.rsa.private_key_openssh
-    sensitive = true
+output "APP_NAME" {
+    value = local.resource_name
+    sensitive = false
+}
+
+output "AUTOMATION_ACCOUNT_URL" {
+    value = azurerm_automation_account.this.hybrid_service_url
+    sensitive = false
 }

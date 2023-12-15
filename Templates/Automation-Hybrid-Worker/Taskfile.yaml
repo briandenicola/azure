@@ -5,20 +5,36 @@ env:
 
 tasks:
   up:
-    desc: Creates a complete Azure ML environment 
+    desc: Creates a complete Azure environment 
     cmds:
     - terraform workspace new {{.REGION}} || true
     - terraform workspace select {{.REGION}}
     - terraform init
-    - terraform apply -auto-approve -var "region={{.REGION}}" -var "number_of_runners={{.VM_COUNT}}" -compact-warnings
+    - terraform apply -auto-approve -var "region={{.REGION}}" -compact-warnings
     vars: 
       REGION: '{{default "southcentralus" .CLI_ARGS}}'
+
+  runners:
+    desc: Creates a Automation Hybrid Runers
+    cmds:
+    - terraform -chdir=./runners workspace new {{.APP_NAME}} || true
+    - terraform -chdir=./runners workspace select {{.APP_NAME}}
+    - terraform -chdir=./runners init
+    - terraform -chdir=./runners apply -auto-approve -var "app_name={{.APP_NAME}}" -var "number_of_runners={{.VM_COUNT}}" -var "automation_account_url={{.AUTOMATION_ACCOUNT_URL}}" -compact-warnings
+    vars: 
+      APP_NAME: '{{default .CLI_ARGS}}'
+      AUTOMATION_ACCOUNT_URL: 
+        sh: terraform output -raw AUTOMATION_ACCOUNT_URL
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:
-      - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
-      - az group delete -n {{.RG}} --yes || true
+    - cd ./runners; rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG_RUNNERS}} --yes || true
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG}} --yes || true
     vars:
       RG:
-        sh: terraform  output -raw RESOURCE_GROUP
+        sh: terraform output -raw RESOURCE_GROUP
+      RG_RUNNERS:
+        sh: terraform -chdir=./runners output -raw RESOURCE_GROUP

@@ -6,7 +6,7 @@ resource "azurerm_network_interface" "this" {
 
   ip_configuration {
     name                          = local.vm_name
-    subnet_id                     = azurerm_subnet.servers.id
+    subnet_id                     = data.azurerm_subnet.servers.id
     private_ip_address_allocation = "Dynamic"
   }
 }
@@ -59,7 +59,7 @@ resource "azurerm_virtual_machine_extension" "this" {
 
     settings = <<SETTINGS
     {
-        "AutomationAccountURL": "${azurerm_automation_account.this.hybrid_service_url}"
+        "AutomationAccountURL": "${var.automation_account_url}"
     }
 SETTINGS
 }
@@ -78,4 +78,13 @@ resource "azurerm_virtual_machine_extension" "powershell" {
  }
 SETTINGS
 
+}
+
+resource "azurerm_automation_hybrid_runbook_worker" "this" {
+  count                   = var.number_of_runners
+  resource_group_name     = data.azurerm_resource_group.automation_rg.name
+  automation_account_name = data.azurerm_automation_account.this.name
+  worker_group_name       = local.worker_group_name
+  vm_resource_id          = azurerm_linux_virtual_machine.this[count.index].id
+  worker_id               = random_uuid.id[count.index].result 
 }
