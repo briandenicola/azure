@@ -2,6 +2,9 @@
 Thumbs.db
 ehthumbs.db
 
+# VS Code
+.vscode/
+
 # Terraform 
 terraform.tfstate.d
 .terraform.*
