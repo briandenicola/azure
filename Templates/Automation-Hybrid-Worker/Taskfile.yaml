@@ -21,4 +21,4 @@ tasks:
       - az group delete -n {{.RG}} --yes || true
     vars:
       RG:
-        sh: terraform  output -raw AKS_RESOURCE_GROUP
+        sh: terraform  output -raw RESOURCE_GROUP
