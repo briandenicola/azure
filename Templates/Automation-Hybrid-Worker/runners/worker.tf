@@ -1,6 +1,6 @@
 resource "azurerm_network_interface" "this" {
   count               = var.number_of_runners
-  name                = "${local.vm_name}-${substr(random_uuid.id[count.index].result,0,3)}-nic"
+  name                = "${local.vm_name}-${substr(random_uuid.id[count.index].result, 0, 3)}-nic"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 
@@ -12,12 +12,16 @@ resource "azurerm_network_interface" "this" {
 }
 
 resource "azurerm_linux_virtual_machine" "this" {
-  count               = var.number_of_runners
-  name                = "${local.vm_name}-${substr(random_uuid.id[count.index].result,0,3)}"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  admin_username      = "manager"
-  size                = var.vm_sku
+  count                                                  = var.number_of_runners
+  name                                                   = "${local.vm_name}-${substr(random_uuid.id[count.index].result, 0, 3)}"
+  location                                               = azurerm_resource_group.this.location
+  resource_group_name                                    = azurerm_resource_group.this.name
+  admin_username                                         = "manager"
+  size                                                   = var.vm_sku
+  patch_assessment_mode                                  = "AutomaticByPlatform"
+  patch_mode                                             = "AutomaticByPlatform" 
+  provision_vm_agent                                     = true
+  bypass_platform_safety_checks_on_user_schedule_enabled = true
 
   network_interface_ids = [
     azurerm_network_interface.this[count.index].id,
@@ -36,7 +40,7 @@ resource "azurerm_linux_virtual_machine" "this" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    name                 = "${local.vm_name}-${substr(random_uuid.id[count.index].result,0,3)}-osdisk"
+    name                 = "${local.vm_name}-${substr(random_uuid.id[count.index].result, 0, 3)}-osdisk"
   }
 
   source_image_reference {
@@ -47,17 +51,24 @@ resource "azurerm_linux_virtual_machine" "this" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "this" {
-    count                = var.number_of_runners
-    name                 = "hybrid-worker-install"
-    virtual_machine_id   = azurerm_linux_virtual_machine.this[count.index].id
-    publisher            = "Microsoft.Azure.Automation.HybridWorker"
-    type                 = "HybridWorkerForLinux"
-    type_handler_version = "1.1"
-    automatic_upgrade_enabled = true
-    auto_upgrade_minor_version = true
+resource "azurerm_maintenance_assignment_virtual_machine" "this" {
+  count                        = var.number_of_runners
+  location                     = azurerm_resource_group.this.location
+  maintenance_configuration_id = data.azurerm_maintenance_configuration.this.id
+  virtual_machine_id           = azurerm_linux_virtual_machine.this[count.index].id
+}
 
-    settings = <<SETTINGS
+resource "azurerm_virtual_machine_extension" "this" {
+  count                      = var.number_of_runners
+  name                       = "hybrid-worker-install"
+  virtual_machine_id         = azurerm_linux_virtual_machine.this[count.index].id
+  publisher                  = "Microsoft.Azure.Automation.HybridWorker"
+  type                       = "HybridWorkerForLinux"
+  type_handler_version       = "1.1"
+  automatic_upgrade_enabled  = true
+  auto_upgrade_minor_version = true
+
+  settings = <<SETTINGS
     {
         "AutomationAccountURL": "${var.automation_account_url}"
     }
@@ -86,5 +97,5 @@ resource "azurerm_automation_hybrid_runbook_worker" "this" {
   automation_account_name = data.azurerm_automation_account.this.name
   worker_group_name       = local.worker_group_name
   vm_resource_id          = azurerm_linux_virtual_machine.this[count.index].id
-  worker_id               = random_uuid.id[count.index].result 
+  worker_id               = random_uuid.id[count.index].result
 }

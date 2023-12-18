@@ -19,3 +19,15 @@ variable "automation_account_url" {
   type        = string
   description = "The URL for the Azure Automation Account"
 }
+
+variable "update_manager_schedule" {
+  type        = string
+  description = "The schedule for the update manager"
+  default     = "standard"
+}
+
+variable "update_manager_rg_name" {
+  type        = string
+  description = "The resource group name for the update manager"
+  default     = "Core_Monitor_RG"
+}
