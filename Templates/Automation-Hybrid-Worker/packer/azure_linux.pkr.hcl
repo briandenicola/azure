@@ -109,10 +109,44 @@ build {
       "dpkg -i powershell_7.4.0-1.deb_amd64.deb", 
       "rm powershell_7.4.0-1.deb_amd64.deb", 
       "apt-get update", 
-      "apt-get install -y powershell", 
-      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+      "apt-get install -y powershell"
     ]
     inline_shebang  = "/bin/sh -x"
   }
 
-}
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    inline          = [
+      "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
+    ]
+    inline_shebang  = "/bin/sh -x"
+  }
+
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    inline = [
+      "export DEBIAN_FRONTEND=noninteractive",
+      "curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc",
+      "curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list",
+      "apt-get update",
+      "ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev",
+    ]
+    inline_shebang  = "/bin/sh -x"
+  }
+
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    inline          = [
+      "pwsh -c \"Install-Module -Name Az -AllowClobber -Scope AllUsers -Force\"",
+    ]
+    inline_shebang  = "/bin/sh -x"
+  }
+
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    inline          = [
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+    ]
+    inline_shebang  = "/bin/sh -x"
+  }
+}      
