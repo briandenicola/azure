@@ -73,6 +73,12 @@ resource "azurerm_virtual_machine_extension" "this" {
         "AutomationAccountURL": "${var.automation_account_url}"
     }
 SETTINGS
+
+#   protected_settings = <<PROTECTED_SETTINGS
+#     {
+#        "Proxy_URL": "http://${var.proxy_ip_address}"
+#     }
+# PROTECTED_SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "powershell" {
