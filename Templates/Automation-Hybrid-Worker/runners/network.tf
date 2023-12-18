@@ -3,7 +3,6 @@ data "azurerm_virtual_network" "this" {
   resource_group_name = data.azurerm_resource_group.automation_rg.name
 }
 
-
 data "azurerm_subnet" "servers" {
   name                 = "servers"
   resource_group_name  = data.azurerm_resource_group.automation_rg.name
