@@ -49,6 +49,17 @@ resource "azurerm_linux_virtual_machine" "this" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  # Extension not supported on Mariner yet.
+  # source_image_reference {
+  #    publisher = "MicrosoftCBLMariner"
+  #    offer     = "cbl-mariner"
+  #    sku       = "cbl-mariner-2-gen2"
+  #    version   = "latest"
+  # }
+
+  # Install PowerShell 7.4.0
+  custom_data = local.install_script
 }
 
 resource "azurerm_maintenance_assignment_virtual_machine" "this" {
@@ -74,27 +85,14 @@ resource "azurerm_virtual_machine_extension" "this" {
     }
 SETTINGS
 
-#   protected_settings = <<PROTECTED_SETTINGS
-#     {
-#        "Proxy_URL": "http://${var.proxy_ip_address}"
-#     }
-# PROTECTED_SETTINGS
-}
-
-resource "azurerm_virtual_machine_extension" "powershell" {
-  count                = var.number_of_runners
-  name                 = "powershell-install"
-  virtual_machine_id   = azurerm_linux_virtual_machine.this[count.index].id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
-
-  settings = <<SETTINGS
- {
-  "commandToExecute":"${local.powershell_install_script}"
- }
-SETTINGS
-
+  #
+  # If using an HTTP proxy, add the following to the settings block above:
+  #   protected_settings = <<PROTECTED_SETTINGS
+  #     {
+  #        "Proxy_URL": "http://${var.proxy_ip_address}"
+  #     }
+  # PROTECTED_SETTINGS
+  #
 }
 
 resource "azurerm_automation_hybrid_runbook_worker" "this" {

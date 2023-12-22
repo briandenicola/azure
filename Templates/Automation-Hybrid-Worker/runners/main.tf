@@ -21,10 +21,8 @@ locals {
     resource_name               = var.app_name
     automation_name             = "${local.resource_name}-automation"
     vm_name                     = "${local.resource_name}-${random_id.this.dec}-worker"
-    worker_group_name           = "${local.automation_name}-workers"
-    powershell_install_file     = "powershell_7.4.0-1.deb_amd64.deb"
-    powershell_install_uri      = "https://github.com/PowerShell/PowerShell/releases/download/v7.4.0/${local.powershell_install_file}"
-    powershell_install_script   = "sudo apt update && sudo apt install -y wget && wget ${local.powershell_install_uri} && sudo dpkg -i ${local.powershell_install_file} && sudo apt-get install -f && rm -f ${local.powershell_install_file}"
+    worker_group_name           = "${local.automation_name}-workers"   
+    install_script              = filebase64("./cloud-init.txt")
 }
 
 data "azurerm_resource_group" "automation_rg" {
