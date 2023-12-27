@@ -17,14 +17,20 @@ tasks:
   runners:
     desc: Creates a Automation Hybrid Runers
     cmds:
-    - terraform -chdir=./runners workspace new {{.APP_NAME}} || true
-    - terraform -chdir=./runners workspace select {{.APP_NAME}}
+    - terraform -chdir=./runners workspace new {{.NEW_WORKSPACE_NAME}} || true
+    - terraform -chdir=./runners workspace select {{.NEW_WORKSPACE_NAME}}
     - terraform -chdir=./runners init
     - terraform -chdir=./runners apply -auto-approve -var "app_name={{.APP_NAME}}" -var "number_of_runners={{.VM_COUNT}}" -var "automation_account_url={{.AUTOMATION_ACCOUNT_URL}}" -compact-warnings
+    - terraform -chdir=./runners workspace select {{.OLD_WORKSPACE_NAME}} || true
+    - terraform -chdir=./runners destroy -auto-approve -var "app_name={{.APP_NAME}}" -var "number_of_runners={{.VM_COUNT}}" -var "automation_account_url={{.AUTOMATION_ACCOUNT_URL}}" -compact-warnings || true
     vars: 
       APP_NAME: '{{default .CLI_ARGS}}'
       AUTOMATION_ACCOUNT_URL: 
         sh: terraform output -raw AUTOMATION_ACCOUNT_URL
+      NEW_WORKSPACE_NAME:
+        sh: echo {{.APP_NAME}}-`date +"%Y%m%d"`
+      OLD_WORKSPACE_NAME: 
+        sh: echo {{.APP_NAME}}-`date +"%Y%m%d" -d "last week"`
 
   packer:
     desc: Creates a Gold Image in Azure's Shared Image Gallery
@@ -34,7 +40,8 @@ tasks:
     - packer build -var "build_version={{.BUILD_VERSION}}" .
     vars: 
       APP_NAME: '{{default .CLI_ARGS}}'
-      BUILD_VERSION: date +"%U"
+      BUILD_VERSION:
+        sh: date +"%U"
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform
