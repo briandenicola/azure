@@ -21,8 +21,8 @@ tasks:
     - terraform -chdir=./runners workspace select {{.NEW_WORKSPACE_NAME}}
     - terraform -chdir=./runners init
     - terraform -chdir=./runners apply -auto-approve -var "app_name={{.APP_NAME}}" -var "number_of_runners={{.VM_COUNT}}" -var "automation_account_url={{.AUTOMATION_ACCOUNT_URL}}" -compact-warnings
-    - terraform -chdir=./runners workspace select {{.OLD_WORKSPACE_NAME}} || true
-    - terraform -chdir=./runners destroy -auto-approve -var "app_name={{.APP_NAME}}" -var "number_of_runners={{.VM_COUNT}}" -var "automation_account_url={{.AUTOMATION_ACCOUNT_URL}}" -compact-warnings || true
+    - terraform -chdir=./runners workspace select {{.OLD_WORKSPACE_NAME}} 
+    - terraform -chdir=./runners destroy -auto-approve -var "app_name={{.APP_NAME}}" -var "number_of_runners={{.VM_COUNT}}" -var "automation_account_url={{.AUTOMATION_ACCOUNT_URL}}" -compact-warnings 
     vars: 
       APP_NAME: '{{default .CLI_ARGS}}'
       AUTOMATION_ACCOUNT_URL: 
