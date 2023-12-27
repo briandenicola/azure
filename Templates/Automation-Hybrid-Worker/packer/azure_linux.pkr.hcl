@@ -34,12 +34,12 @@ variable "build_resource_group_name" {
 
 variable "shared_image_gallery_name" {
   type    = string
-  default = "bjdsharedgallery"
+  default = "mysharedgallery"
 }
 
 variable "shared_image_name" {
   type    = string
-  default = "bjdazure.linux"
+  default = "myazure.linux"
 }
 
 variable "shared_image_regions" {
@@ -63,7 +63,7 @@ variable "build_version" {
 
 locals {
   shared_image_version  = "1.0.${var.build_version}"
-  template_name         = "bjdazure.linux.${var.build_version}"
+  template_name         = "myazure.linux.${var.build_version}"
   end_of_life           = timeadd(timestamp(), "336h")
 }
 
