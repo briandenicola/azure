@@ -26,6 +26,16 @@ tasks:
       AUTOMATION_ACCOUNT_URL: 
         sh: terraform output -raw AUTOMATION_ACCOUNT_URL
 
+  packer:
+    desc: Creates a Gold Image in Azure's Shared Image Gallery
+    dir: ./packer
+    cmds:
+    - packer init ./azure_linux.pkr.hcl
+    - packer build -var "build_version={{.BUILD_VERSION}}" .
+    vars: 
+      APP_NAME: '{{default .CLI_ARGS}}'
+      BUILD_VERSION: date +"%U"
+
   down:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:
