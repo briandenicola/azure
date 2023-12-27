@@ -47,11 +47,5 @@ tasks:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:
     - cd ./runners; rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
-    - az group delete -n {{.RG_RUNNERS}} --yes || true
     - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
-    - az group delete -n {{.RG}} --yes || true
-    vars:
-      RG:
-        sh: terraform output -raw RESOURCE_GROUP
-      RG_RUNNERS:
-        sh: terraform -chdir=./runners output -raw RESOURCE_GROUP
+    - az group list --tag Application="Hybrid Worker Automation Demo" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose -n
