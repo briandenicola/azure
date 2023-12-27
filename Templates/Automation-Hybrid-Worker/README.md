@@ -15,7 +15,7 @@ Azure Virtual Machine | Hybrid Workers
 Azure Virtual Network | Virtual Network for Hybrid Workers
 
 ## Architecture
-![Architecture](./.assets/Architecture.png)
+![Architecture](./.assets/architecture.png)
 
 ## Prerequisite 
 * A Linux machine or Windows Subsytem for Linux or Docker for Windows 
