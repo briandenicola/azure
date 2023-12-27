@@ -5,11 +5,13 @@ Azure Automation is a service that allows you to automate tasks in Azure. Azure 
 
 A Hybrid Worker is a virtual machine that is deployed in your Azure subscription. The Hybrid Worker is registered with the Azure Automation service. 
 
-This demo shows how to deploy a disposalable Hybrid Workers using Terraform and Packer without any interaction with the actual virtual machines.  All software is installed via Cloud Init and the Hybrid Worker is registered with the Azure Automation service using the Azure Automation VM Extension.  The machines are also registered with Azure Update Manager for patching.  
+This demo shows how to deploy a disposalable Hybrid Workers using Terraform and Packer without any interaction with the actual virtual machines.  All software is installed via [Cloud Init](./runners/cloud-init.txt) and the Hybrid Workers are registered with the Azure Automation service using the Azure Automation VM Extension.  The machines are also registered with Azure Update Manager for patching.  
 
 The machines are assigned an Identity and a role assignment is created to allow the Hybrid Worker to access Azure resources. The machines are given unique id and are deployed in a separate resource group based on another random id.
 
 The Hybrid Workers are intended to be repaved once a week. This demo does so by having Task create a Terraform workspace based on today's date. When executed, Task will create new machiens for the Hybrid Worker Group then clean up any hybrid workers from the previous week.
+
+Since a Hybrid Worker needs to have many depedencies installed, it is best to create a Golden Image. This demo can Packer to create a Golden Image and have it published into an Azure Shared Image Gallery
 
 ## Components
 Component | Usage
@@ -113,21 +115,34 @@ az login
 task packer -- {APP_NAME} # APP_NAME is the name of the Azure Automation Account from the previous step
 ```
 
-### Deploy Azure Automation Environment
+## Deploy Azure Automation Environment
 ```bash
 az login
 task down
 ```
 
-## Validate
+### Example
+```bash
+$ task down
+task: [down] cd ./runners; rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+task: [down] rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+task: [down] az group list --tag Application="Hybrid Worker Automation Runners" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose -n
+az group delete -y --verbose -n tomcat-39728-runners-38214_rg
+Command ran in 196.461 seconds (init: 0.204, invoke: 196.256)
+task: [down] az group list --tag Application="Hybrid Worker Automation Demo" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose -n
+az group delete -y --verbose -n tomcat-39728_rg
+Command ran in 76.143 seconds (init: 0.118, invoke: 76.026)
+```
 
-### Portal
+# Validate
+
+## Portal
 * Login in to the Azure Portal and navigate to the Azure Automation Account
 * Click on the **Runbooks** blade and click on the **Test Pane** for the **print-host-info** runbook
 * Select **Hybrid Workers**. Click on **Start**. Wait for the runbook to complete
 * Click on the **Output** tab to see the output of the runbook. Validate that it ran on one of the Hybrid Workers
 
-### Azure Cli
+## Azure Cli
 ```bash
 $ az extension add --name automation
 $ az vm list -o table
