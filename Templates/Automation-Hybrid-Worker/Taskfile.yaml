@@ -48,4 +48,5 @@ tasks:
     cmds:
     - cd ./runners; rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
     - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group list --tag Application="Hybrid Worker Automation Runners" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose -n
     - az group list --tag Application="Hybrid Worker Automation Demo" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose -n

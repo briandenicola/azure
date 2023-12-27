@@ -34,7 +34,7 @@ resource "azurerm_resource_group" "this" {
   location              = data.azurerm_resource_group.automation_rg.location
   
   tags     = {
-    Application = "Hybrid Worker Automation Demo"
+    Application = "Hybrid Worker Automation Runners"
     Components  = "Azure Automation; Azure Virtual Machines"
     DeployedOn  = timestamp()
     ExpiresOn   = timeadd(timestamp(), "168h") #7 days
