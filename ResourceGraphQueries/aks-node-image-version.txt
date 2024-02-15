@@ -1,0 +1,8 @@
+resources
+| where type == "microsoft.containerservice/managedclusters"
+| project resourceGroup, name, agentPoolProfiles = (properties.agentPoolProfiles)
+| mv-expand  agentPoolProfiles
+| extend 
+    nodeName = tostring(agentPoolProfiles.name),
+    nodeImageVersion = tostring(agentPoolProfiles.nodeImageVersion)
+| project resourceGroup, name, nodeName, nodeImageVersion
