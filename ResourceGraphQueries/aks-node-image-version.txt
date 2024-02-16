@@ -3,6 +3,9 @@ resources
 | project resourceGroup, name, agentPoolProfiles = (properties.agentPoolProfiles)
 | mv-expand  agentPoolProfiles
 | extend 
-    nodeName = tostring(agentPoolProfiles.name),
-    nodeImageVersion = tostring(agentPoolProfiles.nodeImageVersion)
-| project resourceGroup, name, nodeName, nodeImageVersion
+    nodePoolName = tostring(agentPoolProfiles.name),
+    nodePoolState = tostring(agentPoolProfiles.provisioningState),
+    nodePoolCount = parse_json(agentPoolProfiles)["count"],
+    nodePoolImageVersion = tostring(agentPoolProfiles.nodeImageVersion),
+    nodePoolK8sVersion = tostring(agentPoolProfiles.currentOrchestratorVersion)
+| project resourceGroup, name, nodePoolName, nodePoolState, nodePoolK8sVersion, nodePoolImageVersion, nodePoolCount
