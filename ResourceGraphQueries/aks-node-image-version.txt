@@ -1,0 +1,11 @@
+resources
+| where type == "microsoft.containerservice/managedclusters"
+| project resourceGroup, name, agentPoolProfiles = (properties.agentPoolProfiles)
+| mv-expand  agentPoolProfiles
+| extend 
+    nodePoolName = tostring(agentPoolProfiles.name),
+    nodePoolState = tostring(agentPoolProfiles.provisioningState),
+    nodePoolCount = parse_json(agentPoolProfiles)["count"],
+    nodePoolImageVersion = tostring(agentPoolProfiles.nodeImageVersion),
+    nodePoolK8sVersion = tostring(agentPoolProfiles.currentOrchestratorVersion)
+| project resourceGroup, name, nodePoolName, nodePoolState, nodePoolK8sVersion, nodePoolImageVersion, nodePoolCount
