@@ -168,7 +168,7 @@ function New-AzureVM {
         [string] $SubnetName = "Servers",
 
         [Parameter(Mandatory=$false)]
-        [string] $adminUser = "azureuser",
+        [string] $adminUser = "manager",
 
         [Parameter(Mandatory=$false)]
         [string] $timeZone = "Central Standard Time",
@@ -178,19 +178,22 @@ function New-AzureVM {
     )
     
     Select-AzSubscription -SubscriptionName $SubscriptionName
-
-    $vmName     = "bjd{0}" -f (New-Uuid).Substring(0,8)
+    $id         = (New-Uuid).Substring(0,8)
+    $vmName     = "bjd{0}" -f $id
     $vmNic      = "{0}-nic" -f $vmName
     $vmDisk     = "{0}-osdrive" -f $vmName
 
     $role       = "Virtual Machine Administrator Login"
     $account    = (Get-AzAccessToken).UserId
 
+    $location = Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName | Select-Object -ExpandProperty Location
+    $ResourceGroupName = "VM_{0}_{1}_rg" -f $id, $location
+    
     $vmConfig = @{}
-    $vmConfig.Add('ResourceGroupName',$VnetResourceGroupName)
+    $vmConfig.Add('ResourceGroupName',$ResourceGroupName)
     $vmConfig.Add('VnetResourceGroupName', $VnetResourceGroupName)
     $vmConfig.Add('VnetName', $VnetName)
-    $vmConfig.Add('Location', (Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName | Select-Object -ExpandProperty Location))
+    $vmConfig.Add('Location', $location)
     
     New-AzResourceGroup -Name $vmConfig.ResourceGroupName -Location $vmConfig.Location 
     
@@ -215,11 +218,11 @@ function New-AzureVM {
         $vm = Add-AzVMSshPublicKey -VM $vm -KeyData $publicKey -Path ("/home/{0}/.ssh/authorized_keys" -f $adminUser)
     }
     else {
-        $keyVaultSecret = Get-AzAdminPassword
-        $creds = New-PSCredentials -UserName $adminUser -Password $keyVaultSecret
+        $pass = New-Password -Length 25 -ExcludedSpecialCharacters
+        $creds = New-PSCredentials -UserName $adminUser -Password $pass
     
         $vm = Set-AzVMOperatingSystem -VM $vm -Windows -ComputerName $vmName -Credential $creds -ProvisionVMAgent -EnableAutoUpdate -TimeZone $TimeZone    
-        $vm = Set-AzVMSourceImage -VM $vm -PublisherName 'MicrosoftWindowsDesktop' -Offer 'Windows-10' -Skus '20h1-pro' -Version latest
+        $vm = Set-AzVMSourceImage -VM $vm -PublisherName 'microsoftwindowsserver' -Offer 'WindowsServer' -Skus '2022-datacenter' -Version latest
     }
     New-AzVM -ResourceGroupName $vmConfig.ResourceGroupName -Location $vmConfig.Location -VM $vm -Verbose
     
@@ -242,6 +245,7 @@ function New-AzureVM {
     return (New-Object psobject -Property @{
         Name = $vmName 
         IPAddress =  $nic.IpConfigurations[0].PrivateIpAddress
+        Password = $pass
         ElaspedSeconds = (New-TimeSpan -Start $startTime -End $endTime | Select-Object -ExpandProperty TotalSeconds)
     }) 
 
