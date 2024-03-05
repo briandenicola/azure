@@ -11,7 +11,7 @@ tasks:
     desc: Destorys Azure infrastructure and cleans up terraform state files
     cmds:
     - rm -rf .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
-    - az group delete -n {{.RG}} --yes || true
+    - az group delete -n {{.RG}} --yes --no-wait || true
     vars:
       RG: 
         sh: terraform output -raw RESOURCE_GROUP
