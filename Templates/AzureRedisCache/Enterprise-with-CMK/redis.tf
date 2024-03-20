@@ -65,3 +65,23 @@ resource "azurerm_private_endpoint" "redis" {
     private_dns_zone_ids = [azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net.id]
   }
 }
+
+resource "azurerm_redis_enterprise_database" "this" {
+  name                = "default"
+  cluster_id        = azurerm_redis_enterprise_cluster.this.id
+
+  client_protocol   = "Encrypted"
+  clustering_policy = "EnterpriseCluster"
+  eviction_policy   = "NoEviction"
+  port              = 10000
+
+  module {
+    name = "RediSearch"
+  }
+
+  linked_database_id = [
+    "${azurerm_redis_enterprise_cluster.this.id}/databases/default"
+  ]
+
+  linked_database_group_nickname = "${local.resource_name}-db"
+}
