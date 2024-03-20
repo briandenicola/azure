@@ -1,21 +1,31 @@
-resource "azapi_resource" "cache" {
+resource "azurerm_redis_enterprise_cluster" "this" {
+  name                = local.cache_name
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku_name            = "Enterprise_E10-2"
+  minimum_tls_version = "1.2"
+
+}
+resource "azapi_update_resource" "cache" {
   depends_on = [
-    azurerm_key_vault_key.this
+    azurerm_key_vault_key.this,
+    azurerm_redis_enterprise_cluster.this
   ]
 
   type      = "Microsoft.Cache/redisEnterprise@2024-02-01"
   name      = local.cache_name
-  location  = azurerm_resource_group.this.location
-  parent_id = azurerm_resource_group.this.id
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.this.id
-    ]
-  }
+  parent_id = azurerm_redis_enterprise_cluster.this.id
 
   body = jsonencode({
+    identity = {
+        type  =  "UserAssigned",
+        userAssignedIdentities = {
+            "${azurerm_user_assigned_identity.this.id}" = {
+              principalId = azurerm_user_assigned_identity.this.principal_id 
+              clientId    = azurerm_user_assigned_identity.this.client_id
+            }
+        }
+    }
     properties = {
       encryption = {
         customerManagedKeyEncryption = {
@@ -26,16 +36,11 @@ resource "azapi_resource" "cache" {
           keyEncryptionKeyUrl = azurerm_key_vault_key.this.id
         }
       }
-      minimumTlsVersion = "1.2"
-    }
-    sku = {
-      capacity = 4
-      name     = "Enterprise_E20"
     }
   })
 }
 
-resource "azurerm_monitor_diagnostic_setting" "primary" {
+resource "azurerm_monitor_diagnostic_setting" "this" {
   name                       = "${local.cache_name}-diag"
   target_resource_id         = azurerm_redis_enterprise_cluster.this.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
@@ -45,7 +50,7 @@ resource "azurerm_monitor_diagnostic_setting" "primary" {
   }
 }
 
-# resource "azurerm_private_endpoint" "primary" {
+# resource "azurerm_private_endpoint" "this" {
 #   name                = "${local.cache_name}-endpoint"
 #   resource_group_name = azurerm_resource_group.this.name
 #   location            = azurerm_resource_group.this.location
