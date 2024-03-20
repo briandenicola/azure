@@ -1,10 +1,8 @@
 resource "azurerm_key_vault_key" "this" {
   depends_on = [ 
-    azurerm_key_vault_access_policy.this,
-    azurerm_key_vault_access_policy.admin
-    #azurerm_role_assignment.this,
-    #azurerm_role_assignment.data_admin,
-    #azurerm_role_assignment.admin
+    azurerm_role_assignment.this,
+    azurerm_role_assignment.data_admin,
+    azurerm_role_assignment.admin
   ]
 
   name         = local.kek_name
