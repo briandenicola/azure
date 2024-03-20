@@ -19,7 +19,7 @@ resource "random_integer" "vnet_cidr" {
 }
 
 locals {
-  location            = var.regions
+  location            = var.region
   resource_name       = "${random_pet.this.id}-${random_id.this.dec}"
   kv_name             = "${local.resource_name}-kv"
   vnet_name           = "${local.resource_name}-network"
@@ -33,7 +33,7 @@ locals {
 
 resource "azurerm_resource_group" "this" {
   name     = "${local.resource_name}_rg"
-  location = local.location[0]
+  location = local.location
 
   tags = {
     Application = "Redis Enterprise with CMK Demo"

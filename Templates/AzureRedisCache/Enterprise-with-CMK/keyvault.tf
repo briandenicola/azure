@@ -6,16 +6,10 @@ resource "azurerm_key_vault" "this" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
-  enable_rbac_authorization   = true
+  enable_rbac_authorization   = false
   enabled_for_disk_encryption = true
 
   sku_name                    = "standard"
-
-  network_acls {
-    bypass                    = "AzureServices"
-    default_action            = "Deny"
-    ip_rules                  = ["${chomp(data.http.myip.response_body)}/32"] 
-  }
 }
 
 # resource "azurerm_private_endpoint" "this" {

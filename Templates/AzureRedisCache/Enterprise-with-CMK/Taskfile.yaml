@@ -4,8 +4,13 @@ tasks:
   up:
     desc: Creates Azure infrastructure
     cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
     - terraform init
     - task: apply
+    vars:
+      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+    
     
   plan:
     desc: Creates Azure infrastructure
