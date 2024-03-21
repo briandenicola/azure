@@ -11,7 +11,6 @@ tasks:
     vars:
       REGION: '{{default "southcentralus" .CLI_ARGS}}'
     
-    
   plan:
     desc: Creates Azure infrastructure
     cmds:
