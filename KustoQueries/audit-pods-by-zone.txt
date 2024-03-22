@@ -1,19 +1,22 @@
 KubePodInventory
 | where ContainerStatus == "running"
-| project Name, Computer
-| sort by Name, Computer
-| distinct Name, Computer
+| extend Pod=Name
+| extend Node=Computer
+| project Pod, Node
+| sort by Pod, Node
+| distinct Pod, Node
 | join kind=inner (
-    KubeNodeInventory 
+    KubeNodeInventory
+    | extend Node=Computer
     | extend nodeLabels = parse_json(Labels)
-    | extend zone = tostring(nodeLabels[0].["topology.kubernetes.io/zone"])
-    | where isnotempty(zone)
-    | sort by Computer, zone
-    | distinct Computer, zone
-    | project Computer, zone
+    | extend Zone = tostring(nodeLabels[0].["topology.kubernetes.io/zone"])
+    | where isnotempty(Zone)
+    | sort by Node, Zone
+    | distinct Node, Zone
+    | project Node, Zone
     )
-    on Computer
-| project Name, Computer, zone
-| sort by Name, Computer, zone
-| distinct Name, Computer, zone
-| sort by zone
+    on Node
+| project Pod, Node, Zone
+| sort by Pod, Node, Zone
+| distinct Pod, Node, Zone
+| sort by Zone
