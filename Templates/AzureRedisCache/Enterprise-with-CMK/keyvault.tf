@@ -11,11 +11,11 @@ resource "azurerm_key_vault" "this" {
 
   sku_name = "standard"
 
-  # network_acls {
-  #   default_action = "Deny"
-  #   bypass         = "AzureServices"
-  #   ip_rules       = ["${chomp(data.http.myip.response_body)}/32"]
-  # }
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+    ip_rules       = ["${chomp(data.http.myip.response_body)}/32"]
+  }
 }
 
 resource "azurerm_private_endpoint" "kv" {
