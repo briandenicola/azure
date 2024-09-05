@@ -1,0 +1,33 @@
+version: '3'
+
+tasks:
+  up:
+    desc: Builds end to end an ASEv3 Internal environment
+    cmds:
+    - task: init
+    - task: apply
+
+  init: 
+    desc: Initializes Terraform
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    vars:
+      REGION: '{{default "canadaeast" .CLI_ARGS}}'
+
+  apply: 
+    desc: Applies Terraform configuration
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}"
+    vars:
+      REGION: '{{default "canadaeast" .CLI_ARGS}}'
+    
+  down:
+    desc: Destroys all Azure resources and cleans up terraform
+    cmds:
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG}} --yes --no-wait --verbose || true
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
