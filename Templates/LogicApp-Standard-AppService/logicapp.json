@@ -64,7 +64,7 @@
         "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]"
       ],
-      "kind": "workflowapp,functionapp",
+      "kind": 
       "identity": {
         "type": "SystemAssigned"
       },
