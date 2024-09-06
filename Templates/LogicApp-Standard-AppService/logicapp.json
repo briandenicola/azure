@@ -64,7 +64,7 @@
         "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]"
       ],
-      "kind": 
+      "kind": "workflowapp,functionapp",
       "identity": {
         "type": "SystemAssigned"
       },
@@ -95,7 +95,7 @@
             {
               "name": "AzureWebJobsStorage",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageName'),';AccountKey=',concat(listKeys(concat(resourceGroup().id,'/providers/Microsoft.Storage/storageAccounts/', parameters('storageName')),'2019-06-01').keys[0].value),';EndpointSuffix=core.windows.net')]"
-            }                 
+            }
           ]
         },
         "clientAffinityEnabled": false
