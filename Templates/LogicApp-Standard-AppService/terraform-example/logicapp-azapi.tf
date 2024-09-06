@@ -31,7 +31,7 @@ resource "azapi_resource" "this" {
           },
           {
             name = "AzureFunctionsJobHost__extensionBundle__version"
-            value = "[1.*, 2.0.0)"
+            value = "[4.0.0, 5.0.0)" #"[1.*, 2.0.0)"
           },          
           {
             name  = "FUNCTIONS_WORKER_RUNTIME"
@@ -61,9 +61,19 @@ resource "azapi_resource" "this" {
           {
             name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
             value = azurerm_application_insights.this.connection_string
-          }                    
-          
-          
+          },
+          {
+            name  = "AzureWebJobsStorage__queueServiceUri"
+            value = "https://${azurerm_storage_account.this.name}.queue.core.windows.net"
+          },
+          {
+            name  = "AzureWebJobsStorage__tableServiceUri"
+            value = "https://${azurerm_storage_account.this.name}.table.core.windows.net"
+          },
+          {
+            name  = "AzureWebJobsStorage__blobServiceUri"
+            value = "https://${azurerm_storage_account.this.name}.blob.core.windows.net"  
+          }                                                   
         ]
       }
       clientAffinityEnabled = false
