@@ -30,6 +30,10 @@ resource "azapi_resource" "this" {
             value = "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
           },
           {
+            name = "AzureFunctionsJobHost__extensionBundle__version"
+            value = "[1.*, 2.0.0)"
+          },          
+          {
             name  = "FUNCTIONS_WORKER_RUNTIME"
             value = "node"
           },
@@ -41,6 +45,7 @@ resource "azapi_resource" "this" {
             name  = "WEBSITE_NODE_DEFAULT_VERSION"
             value = "~18"
           },
+
           {
             name  = "WEBSITE_RUN_FROM_PACKAGE"
             value = "1"
