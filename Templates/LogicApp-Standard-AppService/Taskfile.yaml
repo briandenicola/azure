@@ -1,29 +1,43 @@
 version: '3'
 
-env:
-  APP_NAME: werewolf-31947
-  RG: '{{.APP_NAME}}_rg'
-
 tasks:
   up:
-    desc: Builds end to end an ASEv3 Internal environment
+    desc: Builds end to end an Logic Apps Standard environment
     cmds:
     - task: init
     - task: apply
 
   init: 
-    desc: Initializes Azure Resource Group
+    desc: Initializes Terraform
     cmds:
-    - az group create -n {{.RG}} -l {{.REGION}}
+    - terraform -chdir=./infrastructure workspace new {{.REGION}} || true
+    - terraform -chdir=./infrastructure workspace select {{.REGION}}
+    - terraform -chdir=./infrastructure init
     vars:
       REGION: '{{default "canadaeast" .CLI_ARGS}}'
 
   apply: 
     desc: Applies Terraform configuration
     cmds:
-    - az group deployment create -g {{.RG}} --template-file ./logicapp.json --parameters ./logicapp.parameters.json --verbose 
-    
-  down:
-    desc: Destroys all Azure resources 
+    - terraform -chdir=./infrastructure apply -auto-approve -var "region={{.REGION}}"
+    vars:
+      REGION: '{{default "canadaeast" .CLI_ARGS}}'
+  
+  connection:
+    desc: Creates a v2 API Connection for the Logic Apps Standard environment
+    dir: ./infrastructure 
     cmds:
+    - az deployment group create -n connection -g {{.RG}} --template-file ./api-connection/azuredeploy.template.json -verbose
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
+
+  down:
+    desc: Destroys all Azure resources and cleans up terraform
+    dir: ./infrastructure 
+    cmds:
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
     - az group delete -n {{.RG}} --yes --no-wait --verbose || true
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP

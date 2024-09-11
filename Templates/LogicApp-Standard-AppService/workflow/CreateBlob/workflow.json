@@ -1,0 +1,46 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Create_blob_(V2)": {
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "referenceName": "azureblob"
+                        }
+                    },
+                    "method": "post",
+                    "body": "This is an update at @{utcNow()}",
+                    "headers": {
+                        "ReadFileMetadataFromServer": true
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('bjdlogicapptestsa'))}/files",
+                    "queries": {
+                        "folderPath": "apps",
+                        "name": "kingfish.log",
+                        "queryParametersSingleEncoded": true
+                    }
+                },
+                "runAfter": {},
+                "runtimeConfiguration": {
+                    "contentTransfer": {
+                        "transferMode": "Chunked"
+                    }
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "Recurrence": {
+                "type": "Recurrence",
+                "recurrence": {
+                    "frequency": "Minute",
+                    "interval": 2
+                }
+            }
+        }
+    },
+    "kind": "Stateful"
+}

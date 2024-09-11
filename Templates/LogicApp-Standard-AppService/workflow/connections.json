@@ -1,0 +1,23 @@
+{
+    "managedApiConnections": {
+        "azureblob": {
+            "api": {
+                "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/providers/Microsoft.Web/locations/canadaeast/managedApis/azureblob"
+            },
+            "connection": {
+                "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/resourceGroups/kingfish-51268_rg/providers/Microsoft.Web/connections/azureblob"
+            },
+            "authentication": {
+                "type": "ManagedServiceIdentity"
+            },
+            "connectionRuntimeUrl": "https://dc9383f7624c720c.11.common.logic-canadaeast.azure-apihub.net/apim/azureblob/5d7dfc54231c4df19608cfb858439112",
+            "connectionProperties": {
+                "authentication": {
+                    "type": "ManagedServiceIdentity",
+                    "audience": "https://storage.azure.com/"
+                }
+            }
+        }
+    },
+    "serviceProviderConnections": {}
+}

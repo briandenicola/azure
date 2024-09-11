@@ -6,7 +6,7 @@ resource "azapi_resource" "this" {
   ]
 
   type      = "Microsoft.Web/sites@2022-09-01"
-  name      = local.logic_app_name
+  name      = "${local.logic_app_name}-001"
   location  = azurerm_resource_group.this.location
   parent_id = azurerm_resource_group.this.id
 
