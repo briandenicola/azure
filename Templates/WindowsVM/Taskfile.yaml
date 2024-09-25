@@ -1,0 +1,42 @@
+version: '3'
+
+vars:
+  DEFAULT_REGION: 'northcentralus'
+  TAG: "Windows 2022 virtual machine"
+
+tasks:
+  up:
+    desc: Builds a Virtual Machine
+    cmds:
+    - task: init
+    - task: apply
+
+  init: 
+    desc: Initializes Terraform
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  apply: 
+    desc: Applies Terraform configuration
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "tags={{.TAG}}"
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  password:
+    desc: Outputs the password for the VM
+    cmds:
+    - terraform output -raw admin_password
+
+  down:
+    desc: Destroys all Azure resources and cleans up terraform
+    cmds:
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    - az group delete -n {{.RG}} --yes --no-wait --verbose || true
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
