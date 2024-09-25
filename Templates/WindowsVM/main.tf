@@ -19,7 +19,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "this" {
-  name     = "${local.vm_name}_rg"
+  name     = "${local.resource_name}_rg"
   location = local.location
 
   tags = {
