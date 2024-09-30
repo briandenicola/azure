@@ -1,6 +1,6 @@
 
 resource "random_id" "this" {
-  byte_length = 2
+  byte_length = 1 
 }
 
 resource "random_pet" "this" {
