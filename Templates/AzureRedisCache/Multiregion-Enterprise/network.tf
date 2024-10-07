@@ -8,22 +8,22 @@ resource "azurerm_virtual_network" "this" {
   name                = "${local.resource_name}-${each.key}-network"
   address_space       = [local.subnets[index(var.regions, each.key)]]
   location            = each.key
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = azurerm_resource_group.this[each.key].name
 }
 
 resource "azurerm_subnet" "private-endpoints" {
   for_each             = local.regions_set
   name                 = "private-endpoints"
-  resource_group_name  = azurerm_resource_group.this.name
+  resource_group_name  = azurerm_resource_group.this[each.key].name
   virtual_network_name = azurerm_virtual_network.this[each.key].name
   address_prefixes     = [cidrsubnet(local.subnets[index(var.regions, each.key)], 8, 5)]
 }
 
 resource "azurerm_network_security_group" "this" {
-  for_each             = local.regions_set
+  for_each            = local.regions_set
   name                = "${local.resource_name}-${each.key}-nsg"
   location            = each.key
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = azurerm_resource_group.this[each.key].name
 }
 
 resource "azurerm_subnet_network_security_group_association" "this" {

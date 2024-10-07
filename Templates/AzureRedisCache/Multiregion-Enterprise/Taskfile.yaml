@@ -1,17 +1,18 @@
 version: '3'
-  
+
+env:
+  TITLE: "Multi-region Azure Redis Enterprise Cache demo"
+
 tasks:
   up:
-    desc: Creates Azure infrastructure and deploys application code
+    desc: Creates {{.TITLE}} Azure infrastructure
     cmds:
     - terraform init
-    - terraform apply -auto-approve
+    - terraform apply -auto-approve -var "tags={{.TITLE}}"
 
   down:
-    desc: Destorys Azure infrastructure and cleans up terraform state files
+    desc: Destroys all Azure resources and cleans up Terraform
     cmds:
-    - rm -rf .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
-    - az group delete -n {{.RG}} --yes --no-wait || true
-    vars:
-      RG: 
-        sh: terraform output -raw RESOURCE_GROUP
+    - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+    - cd infrastructure ;
+      rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true

@@ -9,12 +9,12 @@ resource "random_id" "this" {
 }
 
 resource "random_pet" "this" {
-  length = 1
-  separator  = ""
+  length    = 1
+  separator = ""
 }
 
 resource "random_password" "password" {
-  length = 25
+  length  = 25
   special = true
 }
 
@@ -24,17 +24,18 @@ resource "random_integer" "vnet_cidr" {
 }
 
 locals {
-    location                    = var.regions
-    resource_name               = "${random_pet.this.id}-${random_id.this.dec}"
+  location      = var.regions
+  resource_name = "${random_pet.this.id}-${random_id.this.dec}"
 }
 
 resource "azurerm_resource_group" "this" {
-  name                  = "${local.resource_name}_rg"
-  location              = local.location[0]
-  
-  tags     = {
-    Application = "redis"
-    Components  = "Azure Redis Cache"
+  for_each = local.regions_set
+  name     = "${local.resource_name}_${each.key}_rg"
+  location = each.key
+
+  tags = {
+    Application = var.tags
+    Components  = "Azure Enterpise Redis Cache, ${each.key}"
     DeployedOn  = timestamp()
   }
 }
