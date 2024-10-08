@@ -4,5 +4,5 @@ resource "azurerm_log_analytics_workspace" "this" {
   location            = each.key
   resource_group_name = azurerm_resource_group.this[each.key].name
   sku                 = "PerGB2018"
-  daily_quota_gb      = 0.5
+  daily_quota_gb      = 5
 }
