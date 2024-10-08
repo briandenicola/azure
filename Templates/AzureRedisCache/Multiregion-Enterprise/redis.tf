@@ -59,7 +59,7 @@ resource "azurerm_redis_enterprise_database" "this" {
 
   cluster_id        = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
   client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
+  clustering_policy = "EnterpriseCluster" #RedisSearch does not support OSS Clustering Policy
   eviction_policy   = "NoEviction"
   port              = 10000
 
