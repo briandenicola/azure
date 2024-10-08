@@ -1,9 +1,4 @@
 resource "azapi_resource" "this" {
-  depends_on = [
-    azurerm_role_assignment.storage_data_reader_managed_identity,
-    azurerm_role_assignment.storage_queue_data_contributor_managed_identity,
-    azurerm_role_assignment.storage_account_contributor_managed_identity
-  ]
 
   type      = "Microsoft.Web/sites@2022-09-01"
   name      = "${local.logic_app_name}-001"
@@ -11,8 +6,7 @@ resource "azapi_resource" "this" {
   parent_id = azurerm_resource_group.this.id
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.this.id]
+    type         = "SystemAssigned"
   }
 
   body = jsonencode({
