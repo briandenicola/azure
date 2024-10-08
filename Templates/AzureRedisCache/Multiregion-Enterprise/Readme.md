@@ -34,7 +34,7 @@
         redis-cli -h ${REDIS_CACHE_REGION_2} -p 10000 -a ${REDIS_KEY} -c --tls get abc
  ```
 
-## Cleanupterraform output -raw PUBLIC_IP_ADDRESSES
+## Clean Up
 ```bash
     task down
 ```
