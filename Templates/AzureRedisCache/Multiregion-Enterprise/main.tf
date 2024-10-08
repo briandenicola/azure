@@ -26,6 +26,8 @@ resource "random_integer" "vnet_cidr" {
 locals {
   location      = var.regions
   resource_name = "${random_pet.this.id}-${random_id.this.dec}"
+  vm_sku        = "Standard_B1ms"
+  my_ip         = "${chomp(data.http.myip.response_body)}/32"
 }
 
 resource "azurerm_resource_group" "this" {

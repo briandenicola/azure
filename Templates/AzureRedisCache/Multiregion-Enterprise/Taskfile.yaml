@@ -4,14 +4,55 @@ env:
   TITLE: "Multi-region Azure Redis Enterprise Cache demo"
 
 tasks:
+  default:
+    cmds: 
+    - task --list 
+
   up:
     desc: Creates {{.TITLE}} Azure infrastructure
     cmds:
     - terraform init
     - terraform apply -auto-approve -var "tags={{.TITLE}}"
+    - task: environment 
+  
+  environment:
+    desc: Creates environment config file for each virtual machine
+    cmds:
+    - cmd: echo "export SSH_HOST_1=\"{{.SSH_HOST_1}}\"" > .env
+      silent: true
+    - cmd: echo "export SSH_HOST_2=\"{{.SSH_HOST_2}}\"" >> .env
+      silent: true
+    - cmd: echo "export REDIS_CACHE_REGION_1=\"{{.REDIS_CACHE_1}}\"" > sshenv
+      silent: true
+    - cmd: echo "export REDIS_CACHE_REGION_2=\"{{.REDIS_CACHE_2}}\"" >> sshenv
+      silent: true
+    - cmd: echo "export REDIS_KEY=\"{{.REDIS_KEY}}\"" >> sshenv
+      silent: true
+    vars:
+      SSH_HOST_1:
+        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[0]'
+      SSH_HOST_2: 
+        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[1]'
+      REDIS_CACHE_1:
+        sh: terraform output -json REDIS_HOSTS | jq  -r '.[0]'
+      REDIS_CACHE_2: 
+        sh: terraform output -json REDIS_HOSTS | jq  -r '.[1]'
+      REDIS_KEY:
+        sh: terraform output -raw REDIS_ACCESS_KEY
+
+  copy:
+    desc: Copies the environment config file to each virtual machine
+    cmds:
+    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_1}:~/.env 
+    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_2}:~/.
+    vars:
+      SSH_HOST_1:
+        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[0]'
+      SSH_HOST_2: 
+        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[1]'
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:
     - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
-    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info sshenv || true
