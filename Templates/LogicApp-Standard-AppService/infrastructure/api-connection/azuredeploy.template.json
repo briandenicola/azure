@@ -1,8 +1,10 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0", 
-    "outputs": {},
     "parameters": {},
+    "variables": {
+        "connectionID": "[concat('/subscriptions/', subscription().subscriptionId ,'/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azureblob')]"
+    },
     "resources": [
         {
             "type": "Microsoft.Web/connections",
@@ -19,9 +21,20 @@
                 "api": {
                     "name": "azureblob",
                     "type": "Microsoft.Web/locations/managedApis",
-                    "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/providers/Microsoft.Web/locations/canadaeast/managedApis/azureblob"
+                    "id": "[variables('connectionID')]"
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+        "connectionId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Web/connections', 'azureblob')]"
+        },
+        "connectionRuntimeUrl": {
+            "type": "string",   
+            "value": "[reference(resourceId('Microsoft.Web/connections', 'azureblob'), '2018-07-01-preview').connectionRuntimeUrl]"
+        }        
+    }
+
 }

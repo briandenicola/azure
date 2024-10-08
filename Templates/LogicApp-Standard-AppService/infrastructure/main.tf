@@ -20,11 +20,12 @@ resource "random_integer" "vnet_cidr" {
 }
 
 locals {
-  location                  = var.region
-  resource_name             = "${random_pet.this.id}-${random_id.this.dec}"
-  app_service_name          = "${local.resource_name}-windows-hosting"
-  storage_account_name_name = "${replace(local.resource_name,"-","")}sa"
-  logic_app_name            = "${local.resource_name}-workflow"
+  location                       = var.region
+  resource_name                  = "${random_pet.this.id}-${random_id.this.dec}"
+  app_service_name               = "${local.resource_name}-windows-hosting"
+  storage_account_name_name      = "${replace(local.resource_name, "-", "")}sa"
+  test_storage_account_name_name = "${replace(local.resource_name, "-", "")}test"
+  logic_app_name                 = "${local.resource_name}-workflow"
 }
 
 resource "azurerm_resource_group" "this" {

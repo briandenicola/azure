@@ -27,7 +27,7 @@ tasks:
     desc: Creates a v2 API Connection for the Logic Apps Standard environment
     dir: ./infrastructure 
     cmds:
-    - az deployment group create -n connection -g {{.RG}} --template-file ./api-connection/azuredeploy.template.json -verbose
+    - az deployment group create -n connection -g {{.RG}} --template-file ./api-connection/azuredeploy.template.json --verbose
     vars:
       RG: 
         sh: terraform output -raw RESOURCE_GROUP

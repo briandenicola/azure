@@ -15,7 +15,7 @@
                     "headers": {
                         "ReadFileMetadataFromServer": true
                     },
-                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('bjdlogicapptestsa'))}/files",
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('kingfish51268test'))}/files",
                     "queries": {
                         "folderPath": "apps",
                         "name": "kingfish.log",
