@@ -19,11 +19,12 @@ tasks:
   init: 
     desc: Initializes Terraform
     cmds:
-    - terraform workspace new {{.REGION}} || true
-    - terraform workspace select {{.REGION}}
+    - terraform workspace new {{.WORKSPACE}} || true
+    - terraform workspace select {{.WORKSPACE}}
     - terraform init
     vars:
       REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+      WORKSPACE: '{{.REGION}}-{{.TYPE}}'
 
   apply: 
     desc: Applies Terraform configuration
