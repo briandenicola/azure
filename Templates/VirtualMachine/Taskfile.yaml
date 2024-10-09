@@ -3,7 +3,7 @@ version: '3'
 vars:
   DEFAULT_REGION: 'northcentralus'
   TAG: "Azure Virtual Machine"
-  VM_TYPE: Linux
+  TYPE: Linux
 
 tasks:
   default:
@@ -11,7 +11,7 @@ tasks:
     - task --list 
 
   up:
-    desc: Builds an {{.VM_TYPE}} {{.TAG}}
+    desc: Builds an {{.TYPE}} {{.TAG}}
     cmds:
     - task: init
     - task: apply
@@ -28,12 +28,12 @@ tasks:
   apply: 
     desc: Applies Terraform configuration
     cmds:
-    - terraform apply -auto-approve -var "region={{.REGION}}" -var "tags={{.TAG}}" -var "vm_type={{.VM_TYPE}}"
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "tags={{.TAG}}" -var "vm_type={{.TYPE}}"
     vars:
       REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
 
   password:
-    desc: Outputs the password for the VM
+    desc: Outputs the password for the VM if the VM is Windows
     cmds:
     - terraform output -raw WINDOWS_ADMIN_PASSWORD
 
