@@ -38,25 +38,8 @@ resource "azurerm_private_endpoint" "this" {
   }
 }
 
-resource "azurerm_private_dns_a_record" "redis_region_1_in_region_2_dns" {
-  name                = "${azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].name}.${element(var.regions, 0)}"
-  zone_name           = azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net[element(var.regions, 1)].name
-  resource_group_name = azurerm_resource_group.this[element(var.regions, 1)].name
-  ttl                 = 300
-  records             = [azurerm_private_endpoint.this[element(var.regions, 0)].private_service_connection[0].private_ip_address]
-}
-
-resource "azurerm_private_dns_a_record" "redis_region_2_in_region_1_dns" {
-  name                = "${azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].name}.${element(var.regions, 1)}"
-  zone_name           = azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net[element(var.regions, 0)].name
-  resource_group_name = azurerm_resource_group.this[element(var.regions, 0)].name
-  ttl                 = 300
-  records             = [azurerm_private_endpoint.this[element(var.regions, 1)].private_service_connection[0].private_ip_address]
-}
-
 resource "azurerm_redis_enterprise_database" "this" {
-  name = "default"
-
+  name              = local.database_name
   cluster_id        = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster" #RedisSearch does not support OSS Clustering Policy
@@ -68,24 +51,22 @@ resource "azurerm_redis_enterprise_database" "this" {
   }
 
   linked_database_id = [
-    "${azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id}/databases/default",
-    "${azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].id}/databases/default"
+    "${azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id}/databases/${local.database_name}",
+    "${azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].id}/databases/${local.database_name}"
   ]
 
-  linked_database_group_nickname = "TestRedisCluster"
+  linked_database_group_nickname = "${local.database_name}RedisDatabase"
 }
 
 data "azurerm_redis_enterprise_database" "region_1_cluster_instance" {
   depends_on          = [azurerm_redis_enterprise_database.this]
-  name                = "default"
-  resource_group_name = azurerm_resource_group.this[element(var.regions, 0)].name
+  name                = local.database_name
   cluster_id          = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
 }
 
 data "azurerm_redis_enterprise_database" "region_2_cluster_instance" {
   depends_on          = [azurerm_redis_enterprise_database.this]
-  name                = "default"
-  resource_group_name = azurerm_resource_group.this[element(var.regions, 1)].name
+  name                = local.database_name
   cluster_id          = azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].id
 }
 

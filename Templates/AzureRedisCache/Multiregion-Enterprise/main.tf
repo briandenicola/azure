@@ -28,6 +28,7 @@ locals {
   resource_name = "${random_pet.this.id}-${random_id.this.dec}"
   vm_sku        = "Standard_B1ms"
   my_ip         = "${chomp(data.http.myip.response_body)}/32"
+  database_name = "default"
 }
 
 resource "azurerm_resource_group" "this" {
