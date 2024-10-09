@@ -37,13 +37,13 @@ tasks:
       silent: true      
     vars:
       SSH_HOST_1:
-        sh: terraform output -json PUBLIC_IP_ADDRESS_1
+        sh: terraform output -raw PUBLIC_IP_ADDRESS_1
       SSH_HOST_2: 
-        sh: terraform output -json PUBLIC_IP_ADDRESS_2
+        sh: terraform output -raw PUBLIC_IP_ADDRESS_2
       REDIS_CACHE_1:
-        sh: terraform output -json REDIS_HOST_1
+        sh: terraform output -raw REDIS_HOST_1
       REDIS_CACHE_2: 
-        sh: terraform output -json REDIS_HOST_2
+        sh: terraform output -raw REDIS_HOST_2
       REDIS_KEY_1:
         sh: terraform output -raw REDIS_ACCESS_KEY_1
       REDIS_KEY_2:
@@ -56,9 +56,9 @@ tasks:
     - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_2}:~/.env
     vars:
       SSH_HOST_1:
-        sh: terraform output -json PUBLIC_IP_ADDRESS_1
+        sh: terraform output -raw PUBLIC_IP_ADDRESS_1
       SSH_HOST_2: 
-        sh: terraform output -json PUBLIC_IP_ADDRESS_2
+        sh: terraform output -raw PUBLIC_IP_ADDRESS_2
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform

@@ -20,13 +20,13 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
 resource "azurerm_private_endpoint" "this" {
   for_each            = local.regions_set
-  name                = "${local.resource_name}-endpoint"
+  name                = "${local.resource_name}-${each.key}-endpoint"
   resource_group_name = azurerm_resource_group.this[each.key].name
   location            = each.key
   subnet_id           = azurerm_subnet.private-endpoints[each.key].id
 
   private_service_connection {
-    name                           = "${local.resource_name}-endpoint"
+    name                           = "${local.resource_name}-${each.key}-endpoint"
     private_connection_resource_id = azurerm_redis_enterprise_cluster.this[each.key].id
     subresource_names              = ["redisEnterprise"]
     is_manual_connection           = false
