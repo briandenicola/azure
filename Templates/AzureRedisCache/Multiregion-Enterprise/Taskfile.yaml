@@ -14,6 +14,11 @@ tasks:
     - terraform init
     - terraform apply -auto-approve -var "tags={{.TITLE}}"
     - task: environment 
+
+  refresh:
+    desc: Refreshes Terraform state
+    cmds:
+    - terraform refresh -var "tags={{.TITLE}}" 
   
   environment:
     desc: Creates environment config file for each virtual machine
@@ -26,30 +31,34 @@ tasks:
       silent: true
     - cmd: echo "export REDIS_CACHE_REGION_2=\"{{.REDIS_CACHE_2}}\"" >> sshenv
       silent: true
-    - cmd: echo "export REDIS_KEY=\"{{.REDIS_KEY}}\"" >> sshenv
+    - cmd: echo "export REDIS_KEY_1=\"{{.REDIS_KEY_1}}\"" >> sshenv
       silent: true
+    - cmd: echo "export REDIS_KEY_2=\"{{.REDIS_KEY_2}}\"" >> sshenv
+      silent: true      
     vars:
       SSH_HOST_1:
-        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[0]'
+        sh: terraform output -json PUBLIC_IP_ADDRESS_1
       SSH_HOST_2: 
-        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[1]'
+        sh: terraform output -json PUBLIC_IP_ADDRESS_2
       REDIS_CACHE_1:
-        sh: terraform output -json REDIS_HOSTS | jq  -r '.[0]'
+        sh: terraform output -json REDIS_HOST_1
       REDIS_CACHE_2: 
-        sh: terraform output -json REDIS_HOSTS | jq  -r '.[1]'
-      REDIS_KEY:
-        sh: terraform output -raw REDIS_ACCESS_KEY
+        sh: terraform output -json REDIS_HOST_2
+      REDIS_KEY_1:
+        sh: terraform output -raw REDIS_ACCESS_KEY_1
+      REDIS_KEY_2:
+        sh: terraform output -raw REDIS_ACCESS_KEY_2
 
   copy:
     desc: Copies the environment config file to each virtual machine
     cmds:
     - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_1}:~/.env 
-    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_2}:~/.
+    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_2}:~/.env
     vars:
       SSH_HOST_1:
-        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[0]'
+        sh: terraform output -json PUBLIC_IP_ADDRESS_1
       SSH_HOST_2: 
-        sh: terraform output -json PUBLIC_IP_ADDRESSES | jq  -r '.[1]'
+        sh: terraform output -json PUBLIC_IP_ADDRESS_2
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform

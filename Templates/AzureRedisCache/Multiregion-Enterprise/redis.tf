@@ -43,7 +43,7 @@ resource "azurerm_private_dns_a_record" "redis_region_1_in_region_2_dns" {
   zone_name           = azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net[element(var.regions, 1)].name
   resource_group_name = azurerm_resource_group.this[element(var.regions, 1)].name
   ttl                 = 300
-  records             = [ azurerm_private_endpoint.this[element(var.regions, 0)].private_service_connection[0].private_ip_address ]
+  records             = [azurerm_private_endpoint.this[element(var.regions, 0)].private_service_connection[0].private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "redis_region_2_in_region_1_dns" {
@@ -51,11 +51,11 @@ resource "azurerm_private_dns_a_record" "redis_region_2_in_region_1_dns" {
   zone_name           = azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net[element(var.regions, 0)].name
   resource_group_name = azurerm_resource_group.this[element(var.regions, 0)].name
   ttl                 = 300
-  records             = [ azurerm_private_endpoint.this[element(var.regions, 1)].private_service_connection[0].private_ip_address ]
+  records             = [azurerm_private_endpoint.this[element(var.regions, 1)].private_service_connection[0].private_ip_address]
 }
 
 resource "azurerm_redis_enterprise_database" "this" {
-  name                = "default"
+  name = "default"
 
   cluster_id        = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
   client_protocol   = "Encrypted"
@@ -75,4 +75,17 @@ resource "azurerm_redis_enterprise_database" "this" {
   linked_database_group_nickname = "TestRedisCluster"
 }
 
+data "azurerm_redis_enterprise_database" "region_1_cluster_instance" {
+  depends_on          = [azurerm_redis_enterprise_database.this]
+  name                = "default"
+  resource_group_name = azurerm_resource_group.this[element(var.regions, 0)].name
+  cluster_id          = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
+}
+
+data "azurerm_redis_enterprise_database" "region_2_cluster_instance" {
+  depends_on          = [azurerm_redis_enterprise_database.this]
+  name                = "default"
+  resource_group_name = azurerm_resource_group.this[element(var.regions, 1)].name
+  cluster_id          = azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].id
+}
 
