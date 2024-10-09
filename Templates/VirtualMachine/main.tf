@@ -8,6 +8,11 @@ resource "random_pet" "this" {
   separator = ""
 }
 
+resource "random_integer" "zone" {
+  min = 1
+  max = 3
+}
+
 locals {
   location             = var.region
   resource_name        = "${random_pet.this.id}-${random_id.this.dec}"
@@ -17,6 +22,7 @@ locals {
   vnet_name            = "${local.resource_name}-network"
   sdlc_environment     = "Development"
   vm_sku               = var.vm_type == "Windows" ? var.windows_sku : var.linux_sku
+  zone                 = local.location == "northcentralus" ? null : random_integer.zone.result
 }
 
 resource "azurerm_resource_group" "this" {
