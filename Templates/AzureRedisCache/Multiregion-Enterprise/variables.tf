@@ -1,7 +1,7 @@
 variable "regions" {
   description   = "The Azure region to deploy to"
   type          = list(string)
-  default       = ["southcentralus", "eastus2"]
+  default       = ["eastus2", "canadacentral"]
 }
 
 variable "tags" {
