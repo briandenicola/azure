@@ -14,10 +14,10 @@
     source .env
     task copy
     ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no manager@${SSH_HOST_1}
+        source ~/.env
         git clone https://github.com/briandenicola/tooling
         cd tooling
         bash ./redis-cli.sh
-        sudo apt install jq
         KEY=$(uuidgen); echo $KEY 
         redis-cli -h ${REDIS_CACHE_REGION_1} -p 10000 -a ${REDIS_KEY_1} -c --tls set ${KEY} $(openssl rand -hex 16 | base64)
         redis-cli -h ${REDIS_CACHE_REGION_1} -p 10000 -a ${REDIS_KEY_1} -c --tls get ${KEY}
@@ -29,10 +29,10 @@
     source .env
     task copy
     ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no manager@${SSH_HOST_2}
+        source ~/.env
         git clone https://github.com/briandenicola/tooling
         cd tooling
         bash ./redis-cli.sh
-        sudo apt install jq
         KEY=__COPIED_FROM_MACHINE_1__
         redis-cli -h ${REDIS_CACHE_REGION_2} -p 10000 -a ${REDIS_KEY_2} -c --tls get ${KEY}
  ```

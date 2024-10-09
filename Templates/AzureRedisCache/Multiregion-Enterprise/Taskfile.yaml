@@ -52,8 +52,8 @@ tasks:
   copy:
     desc: Copies the environment config file to each virtual machine
     cmds:
-    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_1}:~/.env 
-    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@${SSH_HOST_2}:~/.env
+    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@{{.SSH_HOST_1}}:~/.env 
+    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@{{.SSH_HOST_2}}:~/.env
     vars:
       SSH_HOST_1:
         sh: terraform output -raw PUBLIC_IP_ADDRESS_1
