@@ -5,12 +5,12 @@
                 "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/providers/Microsoft.Web/locations/canadaeast/managedApis/azureblob"
             },
             "connection": {                                
-                "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/resourceGroups/kingfish-51268_rg/providers/Microsoft.Web/connections/azureblob"
+                "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/resourceGroups/shrimp-1087_rg/providers/Microsoft.Web/connections/azureblob"
             },
             "authentication": {
                 "type": "ManagedServiceIdentity"
             },
-            "connectionRuntimeUrl": "https://dc9383f7624c720c.11.common.logic-canadaeast.azure-apihub.net/apim/azureblob/703a81bdd1254db48c03d91e64766b6c",
+            "connectionRuntimeUrl": "https://dc9383f7624c720c.11.common.logic-canadaeast.azure-apihub.net/apim/azureblob/777ae6971a714365822d8ae7982af9a4",
             "connectionProperties": {
                 "authentication": {
                     "type": "ManagedServiceIdentity",
