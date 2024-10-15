@@ -12,8 +12,8 @@ resource "azapi_resource" "this" {
   parent_id = azurerm_resource_group.this.id
 
   identity {
-    #type         = "SystemAssigned, UserAssigned"
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    #type         = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.this.id
     ]
@@ -83,10 +83,10 @@ resource "azapi_resource" "this" {
             name  = "AzureWebJobsStorage__blobServiceUri"
             value = "https://${azurerm_storage_account.this.name}.blob.core.windows.net"  
           },
-          # {
-          #   name  = "Workflows.CreateBlob.OperationOptionsUri"
-          #   value = "WithStatelessRunHistory"
-          # }                
+          {
+            name  = "Workflows.CreateBlob.OperationOptionsUri"
+            value = "WithStatelessRunHistory"
+          }                
         ]
       }
     }
