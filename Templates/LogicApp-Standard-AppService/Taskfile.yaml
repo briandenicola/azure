@@ -2,9 +2,9 @@ version: '3'
 
 tasks:
   default:
-  cmds:
+    cmds:
     - task --list
-
+    
   up:
     desc: Builds end to end an Logic Apps Standard environment
     cmds:
@@ -59,6 +59,12 @@ tasks:
     vars:
       LOGIC_APP_NAME: 
         sh: terraform -chdir=../infrastructure output -raw LOGIC_APP_NAME
+
+  current-environment:
+    desc: Displays the current environment
+    cmds:
+    - terraform -chdir=./infrastructure workspace show
+    - terraform -chdir=./infrastructure output
 
   down:
     desc: Destroys all Azure resources and cleans up terraform
