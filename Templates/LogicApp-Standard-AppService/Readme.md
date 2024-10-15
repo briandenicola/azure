@@ -12,8 +12,8 @@ Create a keyless Azure Logic Apps Standard Environment. This will deploy Logic A
 ```bash
     task up
     task connection
-    task publish
 ``` 
+
 ## Manual Steps
 * Log into the Azure Portal.
 * Navigate to the Logic App API Connection (azureblob).
@@ -35,7 +35,7 @@ Create a keyless Azure Logic Apps Standard Environment. This will deploy Logic A
 * The Workflow runs every 2 minutes.  Confirm that the runs have been successful
 * Navigate to the Test Storage Account in the Azure Portal.
 * Click Containers > apps.
-* Confirm that the test.lg file has been created and that it has been udpated.
+* Confirm that the test.log file has been created and that it has been updated.
 * It should container 'This is an update at' and the current date.
 
 # Clean Up
