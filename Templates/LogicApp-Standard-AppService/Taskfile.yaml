@@ -1,6 +1,10 @@
 version: '3'
 
 tasks:
+  default:
+  cmds:
+    - task --list
+
   up:
     desc: Builds end to end an Logic Apps Standard environment
     cmds:
@@ -28,9 +32,33 @@ tasks:
     dir: ./infrastructure 
     cmds:
     - az deployment group create -n connection -g {{.RG}} --template-file ./api-connection/azuredeploy.template.json --verbose
+    - task: connection-update
     vars:
       RG: 
         sh: terraform output -raw RESOURCE_GROUP
+
+  connection-update:
+    dir: ./infrastructure
+    desc: Updates the Logic App AppSettings with the correct API Connection Runtime URL
+    cmds:
+    - az logicapp config appsettings set --name {{.LOGIC_APP_NAME}} --resource-group {{.RG}} --settings BLOB_CONNECTION_RUNTIME_URL={{.RUNTIME_URL}}
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
+      LOGIC_APP_NAME: 
+        sh: terraform output -raw LOGIC_APP_NAME
+      RUNTIME_URL:
+        sh: az resource show -g {{.RG}} -n azureblob --resource-type "Microsoft.Web/Connections" --query properties.connectionRuntimeUrl -o tsv
+
+  publish:
+    dir: ./workflow
+    desc: Calls `func` to publish the Logic App
+    cmds:
+    -  func azure functionapp fetch-app-settings {{.LOGIC_APP_NAME}}
+    -  func azure functionapp publish {{.LOGIC_APP_NAME}}
+    vars:
+      LOGIC_APP_NAME: 
+        sh: terraform -chdir=../infrastructure output -raw LOGIC_APP_NAME
 
   down:
     desc: Destroys all Azure resources and cleans up terraform
