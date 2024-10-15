@@ -15,10 +15,10 @@
                     "headers": {
                         "ReadFileMetadataFromServer": true
                     },
-                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('kingfish51268test'))}/files",
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('marmoset45609test'))}/files",
                     "queries": {
                         "folderPath": "apps",
-                        "name": "kingfish.log",
+                        "name": "marmoset.log",
                         "queryParametersSingleEncoded": true
                     }
                 },
@@ -42,5 +42,5 @@
             }
         }
     },
-    "kind": "Stateless"
+    "kind": "Stateful"
 }
