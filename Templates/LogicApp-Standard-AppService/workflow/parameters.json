@@ -1,0 +1,6 @@
+{
+    "storageAccountName": { 
+        "type": "string", 
+        "value": "@appsetting('WORKFLOWS_BLOB_STORAGE_ACCOUNT_NAME')" 
+    }
+ }

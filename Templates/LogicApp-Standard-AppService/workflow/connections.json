@@ -2,15 +2,15 @@
     "managedApiConnections": {
         "azureblob": {
             "api": {
-                "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/providers/Microsoft.Web/locations/canadaeast/managedApis/azureblob"
+                "id": "/subscriptions/@{appsetting('WORKFLOWS_SUBSCRIPTION_ID')}/providers/Microsoft.Web/locations/@{appsetting('WORKFLOWS_LOCATION_NAME')}/managedApis/azureblob"
             },
             "connection": {                                
-                "id": "/subscriptions/ccfc5dda-43af-4b5e-8cc2-1dda18f2382e/resourceGroups/marmoset-45609_rg/providers/Microsoft.Web/connections/azureblob"
+                "id": "/subscriptions/@{appsetting('WORKFLOWS_SUBSCRIPTION_ID')}/resourceGroups/@{appsetting('WORKFLOWS_RESOURCE_GROUP_NAME')}/providers/Microsoft.Web/connections/azureblob"
             },
             "authentication": {
                 "type": "ManagedServiceIdentity"
             },
-            "connectionRuntimeUrl": "https://dc9383f7624c720c.11.common.logic-canadaeast.azure-apihub.net/apim/azureblob/45aa562bc0a44765953ceb46646c80d0",
+            "connectionRuntimeUrl": "@appsetting('BLOB_CONNECTION_RUNTIME_URL')",
             "connectionProperties": {
                 "authentication": {
                     "type": "ManagedServiceIdentity",

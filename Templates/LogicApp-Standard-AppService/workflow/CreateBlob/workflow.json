@@ -15,10 +15,10 @@
                     "headers": {
                         "ReadFileMetadataFromServer": true
                     },
-                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('marmoset45609test'))}/files",
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('storageAccountName')))}/files",
                     "queries": {
                         "folderPath": "apps",
-                        "name": "marmoset.log",
+                        "name": "test.log",
                         "queryParametersSingleEncoded": true
                     }
                 },

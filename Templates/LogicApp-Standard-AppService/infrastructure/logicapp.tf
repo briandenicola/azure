@@ -13,7 +13,6 @@ resource "azapi_resource" "this" {
 
   identity {
     type         = "SystemAssigned, UserAssigned"
-    #type         = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.this.id
     ]
@@ -86,7 +85,27 @@ resource "azapi_resource" "this" {
           {
             name  = "Workflows.CreateBlob.OperationOptionsUri"
             value = "WithStatelessRunHistory"
-          }                
+          },
+          {
+            name  = "WORKFLOWS_SUBSCRIPTION_ID"
+            value = data.azurerm_client_config.current.subscription_id
+          },
+          {
+            name  = "WORKFLOWS_LOCATION_NAME"
+            value = azurerm_resource_group.this.location
+          },
+          {
+            name  = "WORKFLOWS_RESOURCE_GROUP_NAME"
+            value = azurerm_resource_group.this.name
+          },
+          {
+            name  = "WORKFLOWS_BLOB_STORAGE_ACCOUNT_NAME"
+            value = azurerm_storage_account.test_account.name
+          },          
+          {
+            name  = "BLOB_CONNECTION_RUNTIME_URL"
+            value = "__REPLACE__ME__"
+          },
         ]
       }
     }
