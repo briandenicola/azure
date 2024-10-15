@@ -12,7 +12,8 @@ resource "azapi_resource" "this" {
   parent_id = azurerm_resource_group.this.id
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    #type         = "SystemAssigned, UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.this.id
     ]
@@ -36,19 +37,15 @@ resource "azapi_resource" "this" {
           },
           {
             name = "AzureFunctionsJobHost__extensionBundle__version"
-            value = "[4.0.0, 5.0.0)"  #"[1.*, 2.0.0)" 
+            value = "[1.*, 2.0.0)" 
           },          
           {
             name  = "FUNCTIONS_WORKER_RUNTIME"
-            value = "node"
+            value = "dotnet"
           },
           {
             name  = "FUNCTIONS_EXTENSION_VERSION"
             value = "~4"
-          },
-                    {
-            name  = "WEBSITE_NODE_DEFAULT_VERSION"
-            value = "~22"
           },
           {
             name  = "WEBSITE_RUN_FROM_PACKAGE"

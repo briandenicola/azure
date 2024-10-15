@@ -10,7 +10,7 @@
             "type": "Microsoft.Web/connections",
             "apiVersion": "2018-07-01-preview",
             "name": "azureblob",
-            "location": "canadaeast",
+            "location": "[resourceGroup().location]",
             "kind": "V2",
             "properties": {
                 "displayName": "azureblob",
