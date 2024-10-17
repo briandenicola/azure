@@ -1,25 +1,30 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0", 
-    "parameters": {},
+    "parameters": {
+        "connectionName": {
+            "type": "string",
+            "defaultValue": "azureblob"
+        }
+    },
     "variables": {
-        "connectionID": "[concat('/subscriptions/', subscription().subscriptionId ,'/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azureblob')]"
+        "connectionID": "[concat('/subscriptions/', subscription().subscriptionId ,'/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', parameters('connectionName'))]"
     },
     "resources": [
         {
             "type": "Microsoft.Web/connections",
             "apiVersion": "2018-07-01-preview",
-            "name": "azureblob",
+            "name": "[parameters('connectionName')]",
             "location": "[resourceGroup().location]",
             "kind": "V2",
             "properties": {
-                "displayName": "azureblob",
+                "displayName": "[parameters('connectionName')]",
                 "parameterValueSet": {
                     "name": "managedIdentityAuth",
                     "values": {}
                 },
                 "api": {
-                    "name": "azureblob",
+                    "name": "[parameters('connectionName')]",
                     "type": "Microsoft.Web/locations/managedApis",
                     "id": "[variables('connectionID')]"
                 }
@@ -29,11 +34,11 @@
     "outputs": {
         "connectionId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Web/connections', 'azureblob')]"
+            "value": "[resourceId( 'Microsoft.Web/connections', parameters('connectionName') )]"
         },
         "connectionRuntimeUrl": {
             "type": "string",   
-            "value": "[reference(resourceId('Microsoft.Web/connections', 'azureblob'), '2018-07-01-preview').connectionRuntimeUrl]"
+            "value": "[reference( resourceId('Microsoft.Web/connections', parameters('connectionName') ), '2018-07-01-preview').connectionRuntimeUrl]"
         }        
     }
 

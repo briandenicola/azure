@@ -82,6 +82,7 @@ resource "azapi_resource" "this" {
             name  = "AzureWebJobsStorage__blobServiceUri"
             value = "https://${azurerm_storage_account.this.name}.blob.core.windows.net"  
           },
+## Region: CreateBlob Workflow Required Variables 
           {
             name  = "Workflows.CreateBlob.OperationOptionsUri"
             value = "WithStatelessRunHistory"
@@ -106,6 +107,7 @@ resource "azapi_resource" "this" {
             name  = "BLOB_CONNECTION_RUNTIME_URL"
             value = "__REPLACE__ME__"
           },
+## End Region
         ]
       }
     }
