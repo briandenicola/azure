@@ -33,7 +33,7 @@ resource "azurerm_resource_group" "this" {
   tags = {
     Application = var.tags
     Components  = "${var.vm_type} Virtual Machine; Virtual Network; NAT Gateway; Azure Bastion"
-    zone        = "Zone: ${local.zone}"
+    zone        = "Zone - ${local.zone == null ? "none" : tostring(local.zone)}"
     Environment = local.sdlc_environment
     DeployedOn  = timestamp()
   }
