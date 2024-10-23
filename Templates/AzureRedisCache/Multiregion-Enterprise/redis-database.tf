@@ -2,7 +2,7 @@ resource "azurerm_redis_enterprise_database" "this" {
   depends_on = [
     azurerm_private_endpoint.this
   ]
-  
+
   name              = local.database_name
   cluster_id        = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
   client_protocol   = "Encrypted"
@@ -14,22 +14,13 @@ resource "azurerm_redis_enterprise_database" "this" {
     name = "RediSearch"
   }
 
-  linked_database_id = [
-    "${azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id}/databases/${local.database_name}",
-    "${azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].id}/databases/${local.database_name}"
-  ]
-
+  linked_database_id             = [for i in local.regions_set : "${azurerm_redis_enterprise_cluster.this[i].id}/databases/${local.database_name}"]
   linked_database_group_nickname = "${local.database_name}RedisDatabase"
 }
 
-data "azurerm_redis_enterprise_database" "region_1_cluster_instance" {
+data "azurerm_redis_enterprise_database" "cluster_instance" {
+  for_each   = local.regions_set
   depends_on = [azurerm_redis_enterprise_database.this]
   name       = local.database_name
-  cluster_id = azurerm_redis_enterprise_cluster.this[element(var.regions, 0)].id
-}
-
-data "azurerm_redis_enterprise_database" "region_2_cluster_instance" {
-  depends_on = [azurerm_redis_enterprise_database.this]
-  name       = local.database_name
-  cluster_id = azurerm_redis_enterprise_cluster.this[element(var.regions, 1)].id
+  cluster_id = azurerm_redis_enterprise_cluster.this[each.key].id
 }
