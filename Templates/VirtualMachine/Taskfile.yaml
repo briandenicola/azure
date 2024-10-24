@@ -2,16 +2,16 @@ version: '3'
 
 vars:
   DEFAULT_REGION: 'northcentralus'
-  TAG: "Azure Virtual Machine"
   TYPE: Linux
-
+  TAG: "Azure {{.TYPE}} Virtual Machine"
+    
 tasks:
   default:
     cmds:
     - task --list 
 
   up:
-    desc: Builds an {{.TYPE}} {{.TAG}}
+    desc: Builds an {{.TAG}}
     cmds:
     - task: init
     - task: apply
@@ -39,7 +39,15 @@ tasks:
     - terraform output -raw WINDOWS_ADMIN_PASSWORD
 
   down:
-    desc: Destroys all Azure resources and cleans up Terraform
+    desc: Destroys all Azure resources and cleans up Terraform workspace
     cmds:
-    - az group list --tag Application="{{.TAG}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+    - az group list --tag Application="{{.TAG}}" --query "[?location=='{{.REGION}}'].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+    - rm -rf terraform.tfstate.d/{{.WORKSPACE}} || true
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+      WORKSPACE: '{{.REGION}}-{{.TYPE}}'
+
+  clean:
+    desc: Cleans up Terraform providers
+    cmds:
     - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true

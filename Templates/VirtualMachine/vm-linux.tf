@@ -1,12 +1,16 @@
 resource "azurerm_linux_virtual_machine" "this" {
-  count               = var.vm_type == "Windows" ? 0 : 1
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  size                = local.vm_sku
-  admin_username      = "manager"
-  zone                = local.zone
-  
+  count                 = var.vm_type == "Windows" ? 0 : 1
+  name                  = local.vm_name
+  resource_group_name   = azurerm_resource_group.this.name
+  location              = azurerm_resource_group.this.location
+  size                  = local.vm_sku
+  admin_username        = "manager"
+  zone                  = local.zone
+  provision_vm_agent    = true
+  patch_assessment_mode = "AutomaticByPlatform"
+  patch_mode            = "AutomaticByPlatform"
+  reboot_setting        = "IfRequired"
+
   admin_ssh_key {
     username   = "manager"
     public_key = file("~/.ssh/id_rsa.pub")
@@ -17,9 +21,14 @@ resource "azurerm_linux_virtual_machine" "this" {
   ]
 
   os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    caching              = "ReadOnly"
+    storage_account_type = "Premium_LRS"
     name                 = "${local.vm_name}-osdisk"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "CacheDisk"
+    }
   }
 
   identity {
@@ -29,7 +38,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     ]
   }
 
-  source_image_reference  {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
