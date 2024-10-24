@@ -22,60 +22,34 @@ tasks:
   
   environment:
     desc: Creates environment config file for each virtual machine
-    cmds:
-    - cmd: echo "export SSH_HOST_1=\"{{.SSH_HOST_1}}\"" > .env
+    cmds:  
+    - cmd: rm -rf sshenv || true
       silent: true
-    - cmd: echo "export SSH_HOST_2=\"{{.SSH_HOST_2}}\"" >> .env
+    - cmd: echo '{{.SSH_HOSTS}}' | jq -r 'to_entries[] | "export SSH_HOST_\(.key)=\(.value)"' >> sshenv
       silent: true
-    - cmd: echo "export SSH_HOST_3=\"{{.SSH_HOST_3}}\"" >> .env
-      silent: true      
-    - cmd: echo "export REDIS_CACHE_REGION_1=\"{{.REDIS_CACHE_1}}\"" > sshenv
+    - cmd: echo '{{.REDIS_CACHES}}' | jq -r 'to_entries[] | "export REDIS_CACHE_\(.key)=\(.value)"' >> sshenv
       silent: true
-    - cmd: echo "export REDIS_CACHE_REGION_2=\"{{.REDIS_CACHE_2}}\"" >> sshenv
+    - cmd: echo '{{.REDIS_KEYS}}' | jq -r 'to_entries[] | "export REDIS_KEY_\(.key)=\(.value)"' >> sshenv
       silent: true
-    - cmd: echo "export REDIS_CACHE_REGION_3=\"{{.REDIS_CACHE_3}}\"" >> sshenv
-      silent: true      
-    - cmd: echo "export REDIS_KEY_1=\"{{.REDIS_KEY_1}}\"" >> sshenv
-      silent: true
-    - cmd: echo "export REDIS_KEY_2=\"{{.REDIS_KEY_2}}\"" >> sshenv
-      silent: true      
-    - cmd: echo "export REDIS_KEY_3=\"{{.REDIS_KEY_3}}\"" >> sshenv
-      silent: true           
     vars:
-      SSH_HOST_1:
-        sh: terraform output -json PUBLIC_IP_ADDRESS | jq -r '.[0]'
-      SSH_HOST_2: 
-        sh: terraform output -json PUBLIC_IP_ADDRESS | jq -r '.[1]'
-      SSH_HOST_3: 
-        sh: terraform output -json PUBLIC_IP_ADDRESS | jq -r '.[2]'
-      REDIS_CACHE_1:
-        sh: terraform output -json REDIS_HOSTS | jq -r '.[0]'
-      REDIS_CACHE_2: 
-        sh: terraform output -json REDIS_HOSTS | jq -r '.[1]'
-      REDIS_CACHE_3: 
-        sh: terraform output -json REDIS_HOSTS | jq -r '.[2]'
-      REDIS_KEY_1:
-        sh: terraform output -json REDIS_ACCESS_KEYS | jq -r '.[0]'
-      REDIS_KEY_2:
-        sh: terraform output -json REDIS_ACCESS_KEYS | jq -r '.[1]'
-      REDIS_KEY_3:
-        sh: terraform output -json REDIS_ACCESS_KEYS | jq -r '.[2]'
+      SSH_HOSTS:
+        sh: terraform output -json PUBLIC_IP_ADDRESS 
+      REDIS_KEYS:
+        sh: terraform output -json REDIS_ACCESS_KEYS
+      REDIS_CACHES:
+        sh: terraform output -json REDIS_HOSTS 
 
   copy:
     desc: Copies the environment config file to each virtual machine
     cmds:
-    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@{{.SSH_HOST_1}}:~/.env 
-    - scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@{{.SSH_HOST_2}}:~/.env
+    - for: { var: SSH_HOSTS }
+      cmd: scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sshenv manager@{{.ITEM}}:~/.env 
     vars:
-      SSH_HOST_1:
-        sh: terraform output -json PUBLIC_IP_ADDRESS | jq -r '.[0]'
-      SSH_HOST_2: 
-        sh: terraform output -json PUBLIC_IP_ADDRESS | jq -r '.[1]'
-      SSH_HOST_3: 
-        sh: terraform output -json PUBLIC_IP_ADDRESS | jq -r '.[2]'
+      SSH_HOSTS:
+        sh: terraform output -json PUBLIC_IP_ADDRESS  | jq -r '.[]'
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:
     - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
-    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info sshenv .env || true
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info sshenv || true
