@@ -23,8 +23,8 @@
         cd tooling
         bash ./redis-cli.sh
         KEY=$(uuidgen); echo $KEY 
-        redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_1} -c --tls set ${KEY} $(openssl rand -hex 16 | base64)
-        redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_1} -c --tls get ${KEY}
+        redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_canadacentral} -c --tls set ${KEY} $(openssl rand -hex 16 | base64)
+        redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_canadacentral} -c --tls get ${KEY}
  ```
 
 ### Machine 2..3
@@ -34,8 +34,8 @@
         git clone https://github.com/briandenicola/tooling
         cd tooling
         bash ./redis-cli.sh
-        KEY=__COPIED_FROM_MACHINE_1__
-        redis-cli -h ${SSH_HOST_eastus2} -p 10000 -a ${REDIS_KEY_2} -c --tls get ${KEY}
+        export KEY=__COPIED_FROM_MACHINE_1__
+        redis-cli -h ${SSH_HOST_eastus2} -p 10000 -a ${REDIS_KEY_eastus2} -c --tls get ${KEY}
  ```
 
 ## Clean Up
