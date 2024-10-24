@@ -23,13 +23,8 @@
         cd tooling
         bash ./redis-cli.sh
         KEY=$(uuidgen); echo $KEY 
-<<<<<<< HEAD
         redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_canadacentral} -c --tls set ${KEY} $(openssl rand -hex 16 | base64)
         redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_canadacentral} -c --tls get ${KEY}
-=======
-        redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_eastus2} -c --tls set ${KEY} $(openssl rand -hex 16 | base64)
-        redis-cli -h ${REDIS_CACHE_canadacentral} -p 10000 -a ${REDIS_KEY_eastus2} -c --tls get ${KEY}
->>>>>>> 94505310eedf93c7e230f19caf7e7b34a6c8e9ff
  ```
 
 ### Machine 2..3
