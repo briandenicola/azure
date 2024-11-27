@@ -1,0 +1,11 @@
+resources
+| where type =~ "microsoft.app/containerapps"
+| extend managedEnvironmentId = tostring(properties.managedEnvironmentId)
+| extend replicas = toint(properties.template.scale.replicas)
+| project name, location, replicas, managedEnvironmentId
+| join kind=inner (    resources    
+    | where type =~ "microsoft.app/managedenvironments"    
+    | extend managedEnvironmentId = tostring(id)    
+    | project managedEnvironmentId) on $left.managedEnvironmentId == $right.managedEnvironmentId
+| project-away managedEnvironmentId1
+| summarize totalReplicas = sum(replicas) by name, location
