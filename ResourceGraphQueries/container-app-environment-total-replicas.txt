@@ -1,0 +1,8 @@
+resources
+| where type =~ 'microsoft.app/containerapps'
+| extend managedEnvId = tostring(properties.managedEnvironmentId), minReplicas = toint(properties.template.scale.minReplicas)
+| summarize Replicas = sum(minReplicas) by managedEnvId
+| join kind=inner (    resources    
+| where type =~ 'microsoft.app/managedenvironments'    
+| project managedEnvId = id, ContainerAppEnvironment = name) on $left.managedEnvId == $right.managedEnvId
+| project ContainerAppEnvironment, Replicas
