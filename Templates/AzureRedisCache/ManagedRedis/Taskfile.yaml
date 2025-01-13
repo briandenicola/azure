@@ -1,0 +1,39 @@
+version: '3'
+
+vars:
+  TAG: "Azure Managed Redis Demo"
+  DEFAULT_REGION: "canadacentral"
+
+tasks:
+  up:
+    desc: Creates a {{.TAG}} environment in Azure
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    - task: apply
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+    
+  plan:
+    desc: Creates Azure infrastructure
+    cmds:
+    - terraform plan -var="tags={{.TAG}}" -var="region={{.REGION}}"
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  apply:
+    desc: Creates Azure infrastructure
+    cmds:
+    - terraform apply -auto-approve -var="tags={{.TAG}}" -var="region={{.REGION}}"
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'    
+
+  down:
+    desc: Destorys Azure infrastructure and cleans up terraform state files
+    cmds:
+    - rm -rf .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info terraform.tfstate.d
+    - az group delete -n {{.RG}} --yes --no-wait || true
+    vars:
+      RG: 
+        sh: terraform output -raw RESOURCE_GROUP
