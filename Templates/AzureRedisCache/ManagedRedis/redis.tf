@@ -4,15 +4,27 @@ resource "azapi_resource" "cache" {
   name                      = local.cache_name
   parent_id                 = azurerm_resource_group.this.id
   identity {
-    type = "SystemAssigned"
+    type = "SystemAssigned, UserAssigned"
+    identity_ids =  [
+      azurerm_user_assigned_identity.this.id
+    ]
   }
   location = azurerm_resource_group.this.location
 
   body = {
     sku = {
       name = local.cache_sku
-    }
+    }    
     properties = {
+      encryption = {
+        customerManagedKeyEncryption = {
+          keyEncryptionKeyIdentity = {
+            identityType = "userAssignedIdentity"
+            userAssignedIdentityResourceId = azurerm_user_assigned_identity.this.id
+          }
+          keyEncryptionKeyUrl = azurerm_key_vault_key.this.id
+        }
+      }      
       highAvailability = "Enabled"
     }
   }

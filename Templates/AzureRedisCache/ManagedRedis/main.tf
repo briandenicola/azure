@@ -24,6 +24,8 @@ locals {
   kv_name             = "${local.resource_name}-kv"
   vnet_name           = "${local.resource_name}-network"
   cache_name          = "${local.resource_name}-cache"
+  cache_identity_name = "${local.resource_name}-identity"
+  kek_name            = "${local.resource_name}-cache-kek"
   redis_database_name = "default"
   cache_sku           = "Balanced_B250"
   nsg_name            = "${local.resource_name}-nsg"
