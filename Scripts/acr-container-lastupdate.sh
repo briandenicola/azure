@@ -22,6 +22,7 @@ while (( "$#" )); do
 done
 
 let now=`date +%s`
+query='[].{Tag: digest, LastUpdated: lastUpdateTime, Size: imageSize, Type: configMediaType}'
 
 # List all repositories in the ACR
 echo -e "\033[1m\e[38;5;45mListing all repositories in ACR: ${ACR_NAME}"
@@ -33,7 +34,8 @@ printf "%-10s %-30s %-75s %-20s %-10s %-30s %-5s\n" "------" "----" "----" "---"
 # Loop through each repository
 for repo in ${repositories}; 
 do
-    details=$(az acr manifest list-metadata --name ${repo} --registry ${ACR_NAME}  --query "[].{Tag: digest, LastUpdated: lastUpdateTime, Size: imageSize, Type: configMediaType}" --output json --only-show-errors)
+
+    details=$(az acr manifest list-metadata --name ${repo} --registry ${ACR_NAME}  --query "${query}" --output json --only-show-errors)
     
     for tag in $(echo "${details}" | jq -r '.[].Tag'); 
     do
