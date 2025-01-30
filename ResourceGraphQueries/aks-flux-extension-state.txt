@@ -1,0 +1,17 @@
+kubernetesconfigurationresources
+| where type == "microsoft.kubernetesconfiguration/extensions"
+| join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project SubscriptionName=name, subscriptionId) on subscriptionId
+| extend joinId =  toupper(substring(id, 0, indexof(id, '/providers/Microsoft.KubernetesConfiguration/Extensions/')))
+| join kind=leftouter(
+    Resources
+    | where type == 'microsoft.containerservice/managedclusters'
+    | extend ClusterId = toupper(id)
+    | extend ClusterName = name
+)on $left.joinId == $right.ClusterId
+| extend RG=resourceGroup
+| extend ExtensionName=name
+| extend Version = properties.Version
+| extend AutoUpgradeMinorVersion = properties.AutoUpgradeMinorVersion
+| extend ProvisioningState = properties.ProvisioningState
+| extend ReleaseTrain = properties.ReleaseTrain
+| project ClusterName, RG, ExtensionName, SubscriptionName, Version, AutoUpgradeMinorVersion, ProvisioningState, ReleaseTrain

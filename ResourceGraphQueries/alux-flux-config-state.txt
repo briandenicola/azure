@@ -1,0 +1,18 @@
+kubernetesconfigurationresources
+| where type == "microsoft.kubernetesconfiguration/fluxconfigurations"
+| join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project SubscriptionName=name, subscriptionId) on subscriptionId
+| extend joinId =  toupper(substring(id, 0, indexof(id, '/providers/Microsoft.KubernetesConfiguration/FluxConfigurations/')))
+| join kind=leftouter(
+    Resources
+    | where type == 'microsoft.containerservice/managedclusters'
+    | extend ClusterId = toupper(id)
+    | extend ClusterName = name
+)on $left.joinId == $right.ClusterId    
+| extend RG=resourceGroup
+| extend ConfigurationName=name
+| extend ComplianceState=properties.complianceState
+| extend SourceUpdatedAt=properties.sourceUpdatedAt
+| extend StatusUpdatedAt=properties.statusUpdatedAt
+| extend GitRepo=properties.gitRepository.url
+| extend CommitHash=properties.sourceSyncedCommitId
+| project ClusterName, RG, ConfigurationName, ComplianceState, SourceUpdatedAt, StatusUpdatedAt, GitRepo,CommitHash
