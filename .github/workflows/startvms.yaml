@@ -1,13 +1,7 @@
 name: Otel Api Build
 on:
   schedule:
-    - cron: "05 8 * * wed"
-  workflow_dispatch:
-  push:
-    branches: 
-    - main
-    paths: 
-    - './demo-apps/otel-prometheus/src/*'
+    - cron: "0 15 5 * * *"
 
 permissions:
   id-token: write # Require write permission to Fetch an OIDC token.
@@ -18,10 +12,6 @@ jobs:
       contents: read
       id-token: write
     runs-on: ubuntu-latest
-    env:
-      LINUX_CONTAINER_NAME: otel-demo/8.0-ubuntu-jammy
-      SRC_DIRECTORY: ./demo-apps/otel-prometheus/src/
-      LINUX_DOCKER_FILE: ./demo-apps/otel-prometheus/src/Dockerfile
 
     steps:
       - name: Checkout to the branch
@@ -34,29 +24,9 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Build and push Linux image to ACR
-        run: az acr build --image ${{ env.LINUX_CONTAINER_NAME }}:${{ github.sha }} --registry ${{ secrets.ACR_NAME }} -g ${{ secrets.ACR_RESOURCE_GROUP }} -f ${{ env.LINUX_DOCKER_FILE }} ${{ env.SRC_DIRECTORY }}
-
-  BuildWindowsImage:
-    permissions:
-      contents: read
-      id-token: write
-    runs-on: windows-2022
-    env:
-      WIN_CONTAINER_NAME: otel-demo/8.0-win2022-nano
-      SRC_DIRECTORY: ./demo-apps/otel-prometheus/src/
-      WIN_DOCKER_FILE: ./demo-apps/otel-prometheus/src/Dockerfile.Windows
-
-    steps:
-      - name: Checkout to the branch
-        uses: actions/checkout@v3
-
-      - uses: azure/login@v2
-        name: Azure login
+      - name: Azure CLI script
+        uses: azure/cli@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-
-      - name: Build and push Windows image to ACR
-        run: az acr build --image ${{ env.WIN_CONTAINER_NAME }}:${{ github.sha }} --registry ${{ secrets.ACR_NAME }} -g ${{ secrets.ACR_RESOURCE_GROUP }} -f ${{ env.WIN_DOCKER_FILE }} ${{ env.SRC_DIRECTORY }}
+          azcliversion: latest
+          inlineScript: |
+                az vm start --ids $(az vm list --query "[].id" -o tsv)
