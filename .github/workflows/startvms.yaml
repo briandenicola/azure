@@ -9,7 +9,7 @@ permissions:
   id-token: write # Require write permission to Fetch an OIDC token.
 
 jobs:
-  BuildLinuxImage:
+  StartMachines:
     permissions:
       contents: read
       id-token: write
