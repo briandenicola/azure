@@ -1,8 +1,9 @@
-name: Otel Api Build
+name: Start Azure VMs
+
 on:
-  workflow_dispatch:
   schedule:
     - cron: "0 15 5 * * *"
+  workflow_dispatch:
 
 permissions:
   id-token: write # Require write permission to Fetch an OIDC token.
