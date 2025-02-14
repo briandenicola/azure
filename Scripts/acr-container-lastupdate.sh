@@ -7,7 +7,7 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./requestJITVMAccess.sh -n {VM Name} -g {Resource Group} -s {Subscription} -p {22|3389} -a {IP Address or 0.0.0.0/0 for Any}"
+      echo "Usage: ./acr-container-lastupdate.sh -n {ACR Name}"
       exit 0
       ;;
     --) 
