@@ -2,7 +2,7 @@ name: Purge ACR of old Containers
 
 on:
   schedule:
-    - cron: "15 04 * * thurs"
+    - cron: "15 04 * * thu"
   workflow_dispatch:
 
 permissions:
