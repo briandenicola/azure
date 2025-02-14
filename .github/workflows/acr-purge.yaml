@@ -1,0 +1,35 @@
+name: Purge ACR of old Containers
+
+on:
+  schedule:
+    - cron: "15 04 * * thurs"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # Require write permission to Fetch an OIDC token.
+
+jobs:
+  StartMachines:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v3
+
+      - uses: azure/login@v2
+        name: Azure login
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Azure CLI script
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            chmod +x $GITHUB_WORKSPACE/scripts/acr-container-purge.sh
+            $GITHUB_WORKSPACE/scripts/acr-container-purge.sh -n ${{ secrets.ACR_NAME }}
