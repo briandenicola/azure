@@ -34,7 +34,7 @@ for REPO_NAME in $REPOS; do
       do
           tag=${tags_array[$i]}
           echo "${REPO_NAME}: Deleting tag: ${tag}"
-          az acr repository delete --name ${ACR_NAME} --repository ${REPO_NAME} --tag ${tag} --yes --only-show-errors
+          az acr repository delete --name ${ACR_NAME} --image ${REPO_NAME}:${tag} --yes --only-show-errors
       done
   else
       echo "${REPO_NAME}: Only one tag found, no tags to delete. Checking untagged images..."
