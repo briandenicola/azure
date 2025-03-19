@@ -18,7 +18,7 @@ resource "azapi_resource" "this" {
     ]
   }
 
-  body = jsonencode({
+  body = {
     kind = "workflowapp,functionapp"
     properties = {
       serverFarmId = azurerm_service_plan.this.id
@@ -111,5 +111,5 @@ resource "azapi_resource" "this" {
         ]
       }
     }
-  })
+  }
 }

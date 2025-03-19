@@ -33,7 +33,7 @@ resource "azurerm_resource_group" "this" {
   location = local.location
 
   tags = {
-    Application = "Logic App Standard"
+    Application = var.tags
     Components  = "App Servcie; Logic Apps; Functions Runtime; Storage"
     DeployedOn  = timestamp()
   }
