@@ -30,7 +30,7 @@ tasks:
       REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'    
 
   down:
-    desc: Destorys Azure infrastructure and cleans up terraform state files
+    desc: Destroys Azure infrastructure and cleans up terraform state files
     cmds:
     - rm -rf .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info terraform.tfstate.d
     - az group delete -n {{.RG}} --yes --no-wait || true
