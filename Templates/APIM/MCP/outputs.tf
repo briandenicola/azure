@@ -13,7 +13,7 @@ output "OPENAI_ENDPOINT" {
     sensitive = false
 }
 
-output "APIM_GATEWAY" {
-    value = local.app_apim_gateway_url
+output "PORTAL_URL" {
+    value = local.portal_url
     sensitive = false
 }
