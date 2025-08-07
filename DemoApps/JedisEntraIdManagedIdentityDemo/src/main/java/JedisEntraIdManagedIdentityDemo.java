@@ -1,12 +1,16 @@
-import com.azure.identity.DefaultAzureCredential;
-import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.core.credential.TokenRequestContext;
+import java.util.Set;
+
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.RedisCredentials;
+import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.authentication.*;
+
+import redis.clients.authentication.core.*;
+import redis.clients.authentication.entraid.*;
+import redis.clients.authentication.entraid.ManagedIdentityInfo.UserManagedIdentityType;
 
 public class JedisEntraIdManagedIdentityDemo 
 {   
@@ -15,6 +19,7 @@ public class JedisEntraIdManagedIdentityDemo
     private static final String REDIS_HOST = System.getenv("AZURE_REDIS_CACHE_HOSTNAME"); //"cockatoo-20634-cache.redis.cache.windows.net";
     private static final String USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID = System.getenv("AZURE_REDIS_CLIENT_CLIENT_ID"); //"30c12a4c-f827-49a0-ad6a-476d56537e7b";
     private static final String USER_ASSIGNED_MANAGED_IDENTITY_OBJECT_ID = System.getenv("AZURE_REDIS_CLIENT_OBJECT_ID"); //"23c6baea-a682-4db1-887f-8475271457a0";
+    private static final String scopes = "https://redis.azure.com/.default";
 
     public static void main(String[] args) {
         System.out.println("=== Azure Redis with User Assigned Managed Identity Demo ===\n");
@@ -24,61 +29,51 @@ public class JedisEntraIdManagedIdentityDemo
         boolean useSsl = true;
 
         try {
-            
-            System.out.println("1. Configuring User Assigned Managed Identity authentication...");
-            
-            DefaultAzureCredential creds = new DefaultAzureCredentialBuilder()
-                .managedIdentityClientId(USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID)
+
+            TokenAuthConfig authConfig = EntraIDTokenAuthConfigBuilder.builder()
+                .expirationRefreshRatio(0.25f)
+                .lowerRefreshBoundMillis(100)
+                .tokenRequestExecTimeoutInMs(100) 
+                .maxAttemptsToRetry(10)
+                .delayInMsToRetry(200)
+                .userAssignedManagedIdentity
+                    UserManagedIdentityType.CLIENT_ID,
+                    USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID
+                )
+                .scopes(Set.of(scopes))
                 .build();
-            System.out.println("   ✓ Credentials provider configured");
-            System.out.println("   ✓ Token  provider configured");
 
-            var tokenRequestContext = creds
-                    .getToken(new TokenRequestContext()
-                            .addScopes("https://redis.azure.com/.default"))
-                            .block();
-            String token = tokenRequestContext.getToken();
+            AuthXManager authXManager = new AuthXManager(authConfig);
+            authXManager.start();
 
-            if (token == null) {
-                throw new RuntimeException("Failed to obtain access token");
-            }
+            RedisCredentials credentials = authXManager.get();
+            System.out.println("   Credentials obtained: " + credentials.getPassword());
 
-            System.out.println("\n2. Testing credentials resolution...");
-            System.out.println("   ✓ Access token obtained successfully");
-            System.out.println("   Token expires at: " + tokenRequestContext.getExpiresAt());
-            System.out.println("   Token: " + token);
-            
-            System.out.println("\n3. Building Redis connection URI...");
             DefaultJedisClientConfig config = DefaultJedisClientConfig.builder()
-                .password(token) // Microsoft Entra access token as password is required.
-                .user(USER_ASSIGNED_MANAGED_IDENTITY_OBJECT_ID) 
+                .authXManager(authXManager)
                 .ssl(useSsl)
                 .build();
-            System.out.println("   ✓ Jedis Client Configured");
 
-            pool = new JedisPool(new HostAndPort(REDIS_HOST, REDIS_PORT), config);
-            jedis = pool.getResource();
+            UnifiedJedis jedis2 = new UnifiedJedis(
+                new HostAndPort(REDIS_HOST, REDIS_PORT),
+                config
+            );
             System.out.println("   ✓ Redis connection established");
 
-            System.out.println("\n6. Performing Redis operations...");
+            System.out.println("\nPerforming Redis operations...");
             System.out.println( "\nCache Command  : Ping" );
-            System.out.println( "Cache Response : " + jedis.ping());
+            System.out.println( "Cache Response : " + jedis2.ping());
 
             // Simple get and put of integral data types into the cache
             System.out.println( "\nCache Command  : GET Message" );
-            System.out.println( "Cache Response : " + jedis.get("Message"));
+            System.out.println( "Cache Response : " + jedis2.get("Message"));
 
             System.out.println( "\nCache Command  : SET Message" );
-            System.out.println( "Cache Response : " + jedis.set("Message", "Hello! The cache is working from Java!"));
+            System.out.println( "Cache Response : " + jedis2.set("Message", "Hello! The cache is working from Java!"));
 
             // Demonstrate "SET Message" executed as expected...
             System.out.println( "\nCache Command  : GET Message" );
-            System.out.println( "Cache Response : " + jedis.get("Message"));
-
-            // Get the client list, useful to see if connection list is growing...
-            System.out.println( "\nCache Command  : CLIENT LIST" );
-            System.out.println( "Cache Response : " + jedis.clientList());
-
+            System.out.println( "Cache Response : " + jedis2.get("Message"));
             
         } 
         catch (Exception e) {
