@@ -2,7 +2,11 @@ import com.azure.identity.DefaultAzureCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.core.credential.TokenRequestContext;
 import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.exceptions.JedisException;
 
 public class JedisEntraIdManagedIdentityDemo 
 {   
@@ -15,6 +19,7 @@ public class JedisEntraIdManagedIdentityDemo
     public static void main(String[] args) {
         System.out.println("=== Azure Redis with User Assigned Managed Identity Demo ===\n");
         
+        JedisPool pool = null;
         Jedis jedis = null;
         boolean useSsl = true;
 
@@ -44,14 +49,15 @@ public class JedisEntraIdManagedIdentityDemo
             System.out.println("   Token: " + token);
             
             System.out.println("\n3. Building Redis connection URI...");
-            DefaultJedisClientConfig jedisClientConfig = DefaultJedisClientConfig.builder()
+            DefaultJedisClientConfig config = DefaultJedisClientConfig.builder()
                 .password(token) // Microsoft Entra access token as password is required.
                 .user(USER_ASSIGNED_MANAGED_IDENTITY_OBJECT_ID) 
                 .ssl(useSsl)
                 .build();
             System.out.println("   ✓ Jedis Client Configured");
 
-            jedis = new Jedis(REDIS_HOST, REDIS_PORT, jedisClientConfig);
+            pool = new JedisPool(new HostAndPort(REDIS_HOST, REDIS_PORT), config);
+            jedis = pool.getResource();
             System.out.println("   ✓ Redis connection established");
 
             System.out.println("\n6. Performing Redis operations...");
@@ -83,6 +89,7 @@ public class JedisEntraIdManagedIdentityDemo
             // Cleanup
             if (jedis != null && jedis.isConnected()) {
                 jedis.close();
+                pool.close();
                 System.out.println("\n✓ Redis connection pool closed");
             }
         }
