@@ -35,7 +35,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
   target_resource_id         = azapi_resource.cache.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
