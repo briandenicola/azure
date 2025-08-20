@@ -1,18 +1,4 @@
 
-resource "random_id" "this" {
-  byte_length = 1 
-}
-
-resource "random_pet" "this" {
-  length    = 1
-  separator = ""
-}
-
-resource "random_integer" "zone" {
-  min = 1
-  max = 3
-}
-
 locals {
   location             = var.region
   non_az_regions       = ["northcentralus", "canadaeast", "westcentralus", "westus"]
@@ -26,15 +12,4 @@ locals {
   zone                 = contains(local.non_az_regions, local.location) ? null : random_integer.zone.result
 }
 
-resource "azurerm_resource_group" "this" {
-  name     = "${local.resource_name}_rg"
-  location = local.location
 
-  tags = {
-    Application = var.tags
-    Components  = "${var.vm_type} Virtual Machine; Virtual Network; NAT Gateway; Azure Bastion"
-    zone        = "Zone - ${local.zone == null ? "none" : tostring(local.zone)}"
-    Environment = local.sdlc_environment
-    DeployedOn  = timestamp()
-  }
-}

@@ -1,8 +1,8 @@
 resource "azurerm_managed_disk" "this" {
   count                = var.vm_type == "Windows" ? 1 : 0
   name                 = "${local.vm_name}-datadisk"
-  location             = azurerm_resource_group.this.location
-  resource_group_name  = azurerm_resource_group.this.name
+  location             = azurerm_resource_group.vm.location
+  resource_group_name  = azurerm_resource_group.vm.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "127"
@@ -11,8 +11,8 @@ resource "azurerm_managed_disk" "this" {
 resource "azurerm_windows_virtual_machine" "this" {
   count                 = var.vm_type == "Windows" ? 1 : 0
   name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.this.name
-  location              = azurerm_resource_group.this.location
+  resource_group_name   = azurerm_resource_group.vm.name
+  location              = azurerm_resource_group.vm.location
   size                  = local.vm_sku
   admin_username        = "manager"
   admin_password        = random_password.password.result

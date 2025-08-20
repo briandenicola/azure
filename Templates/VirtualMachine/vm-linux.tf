@@ -1,8 +1,8 @@
 resource "azurerm_linux_virtual_machine" "this" {
   count                 = var.vm_type == "Windows" ? 0 : 1
   name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.this.name
-  location              = azurerm_resource_group.this.location
+  resource_group_name   = azurerm_resource_group.vm.name
+  location              = azurerm_resource_group.vm.location
   size                  = local.vm_sku
   admin_username        = "manager"
   zone                  = local.zone
