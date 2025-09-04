@@ -37,18 +37,6 @@ resource "azurerm_network_security_group" "this" {
   resource_group_name = azurerm_resource_group.this.name
 
   security_rule {
-    name                       = "allow-http-AzureCloud.${var.region}"
-    priority                   = 1000
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "AzureCloud.${var.region}"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
     name                       = "allow-http-my-ipaddress"
     priority                   = 1001
     direction                  = "Inbound"
@@ -57,18 +45,6 @@ resource "azurerm_network_security_group" "this" {
     source_port_range          = "*"
     destination_port_range     = "80"
     source_address_prefix      = local.home_ip_address
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "allow-https-AzureCloud.${var.region}"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "AzureCloud.${var.region}"
     destination_address_prefix = "*"
   }
 
@@ -86,14 +62,98 @@ resource "azurerm_network_security_group" "this" {
 
   security_rule {
     name                       = "api_management"
-    priority                   = 100
+    priority                   = 1100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3443"
     source_address_prefix      = "ApiManagement"
-    destination_address_prefix = local.apim_subnet_cidir
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "load_balancer_to_apim"
+    priority                   = 1101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "6390"
+    source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = "VirtualNetwork"
+  }
+  
+  security_rule {
+    name                       = "atm_to_apim_443"
+    priority                   = 1102
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "AzureTrafficManager"
+    destination_address_prefix = "VirtualNetwork"
+  }  
+
+  security_rule {
+    name                       = "vnet_to_internet_80"
+    priority                   = 1103
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "Internet"
+  }
+
+  security_rule {
+    name                       = "vnet_to_storage"
+    priority                   = 1104
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "Storage"
+  }
+
+  security_rule {
+    name                       = "vnet_to_sql"
+    priority                   = 1105
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "1443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "SQL"
+  }
+
+  security_rule {
+    name                       = "vnet_to_akv"
+    priority                   = 1106
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "AzureKeyVault"
+  }
+
+  security_rule {
+    name                       = "vnet_to_monitor"
+    priority                   = 1107
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges     = [1886,443]
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "AzureMonitor"
   }
 
 }
