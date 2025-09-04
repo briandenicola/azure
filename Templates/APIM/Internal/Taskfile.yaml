@@ -1,0 +1,44 @@
+version: '3'
+
+dotenv:
+  - .env
+
+vars:
+  TAG: "Azure Internal API Management Demo"
+  DEFAULT_REGION: canadaeast
+  APIM_SKU: Developer
+
+tasks:
+  default:
+    cmds:
+    - task --list 
+    
+  up:
+    desc: Creates a complete {{.TAG}} environment
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    - task: apply
+    vars: 
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'  
+      
+  apply:
+    cmds:
+    - terraform apply -auto-approve -compact-warnings
+        -var "region={{.REGION}}" 
+        -var "tags={{.TAG}}"
+        -var "custom_domain={{.DEFAULT_DOMAIN}}"
+        -var "certificate_base64_encoded={{.CERT}}"
+        -var "certificate_password={{.CERT_PFX_PASS}}"
+        -var "apim_sku={{.APIM_SKU}}"
+    vars:
+      REGION: "{{default .DEFAULT_REGION .CLI_ARGS}}"
+      CERT:
+        sh: cat {{.CERT_PATH}} | base64
+
+  down:
+    desc: Destroys all Azure resources and cleans up Terraform
+    cmds:
+    - az group list --tag Application="{{.TAG}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose --no-wait -n || true
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true
