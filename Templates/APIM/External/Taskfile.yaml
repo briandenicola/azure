@@ -6,6 +6,7 @@ dotenv:
 vars:
   TAG: "Azure External API Management Demo"
   DEFAULT_REGION: canadaeast
+  GW_LOCATION: onpremises
   APIM_SKU: Developer
 
 tasks:
@@ -24,6 +25,7 @@ tasks:
       REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'  
       
   apply:
+    desc: Applies the Terraform configuration to create or update resources
     cmds:
     - terraform apply -auto-approve -compact-warnings
         -var "region={{.REGION}}" 
@@ -31,6 +33,38 @@ tasks:
         -var "apim_sku={{.APIM_SKU}}"
     vars:
       REGION: "{{default .DEFAULT_REGION .CLI_ARGS}}"
+
+  refresh:
+    desc: Refreshes the Terraform configuration to create or update resources
+    cmds:
+    - terraform refresh 
+        -var "region={{.REGION}}" 
+        -var "tags={{.TAG}}"
+        -var "apim_sku={{.APIM_SKU}}"
+    vars:
+      REGION: "{{default .DEFAULT_REGION .CLI_ARGS}}"      
+  
+  creds:
+    desc: Adds a new client secret to the Azure AD application and outputs the relevant details
+    cmds:
+    - az ad app credential reset --id "{{.CLIENT_ID}}" --end-date "{{.END_DATE}}"  --query "{client_id:appId, client_secret:password, tenant_id:tenant}" -o json
+    vars:
+      CLIENT_ID: 
+        sh: terraform output -raw SELF_HOSTED_GW_CLIENT_ID
+      END_DATE: 
+        sh: date -d "+10 days" --utc +%Y-%m-%dT%H:%M:%SZ
+
+  gateway:
+    desc: Outputs the self-hosted gateway connection details
+    cmds:
+    - bash ./scripts/create-self-hosted-gateway.sh {{.SUBSCRIPTION_ID}} {{.RG}} {{.APIM_NAME}} {{.GW_LOCATION}}
+    vars:
+      APIM_NAME: 
+        sh: terraform output -raw APIM_NAME
+      RG:
+        sh: terraform output -raw APP_RESOURCE_GROUP
+      SUBSCRIPTION_ID:
+        sh: terraform output -raw SUBSCRIPTION_ID
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform
