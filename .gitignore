@@ -73,3 +73,4 @@ Temporary Items
 .DS_Store
 Templates/APIM/Internal/.env
 Templates/APIM/External/.env
+Templates/APIM/External/deploy/self-host-gateway.yaml
