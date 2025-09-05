@@ -72,3 +72,4 @@ Temporary Items
 .apdisk
 .DS_Store
 Templates/APIM/Internal/.env
+Templates/APIM/External/.env
