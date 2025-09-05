@@ -5,9 +5,10 @@ dotenv:
 
 vars:
   TAG: "Azure External API Management Demo"
-  DEFAULT_REGION: canadaeast
+  DEFAULT_REGION: canadaeast  
   GW_LOCATION: onpremises
   APIM_SKU: Developer
+
 
 tasks:
   default:
@@ -47,17 +48,24 @@ tasks:
   creds:
     desc: Adds a new client secret to the Azure AD application and outputs the relevant details
     cmds:
-    - az ad app credential reset --id "{{.CLIENT_ID}}" --end-date "{{.END_DATE}}"  --query "{client_id:appId, client_secret:password, tenant_id:tenant}" -o json
+    - cmd: echo -e "➡️\033[1m\e[38;5;45mCreating client secret for {{.CLIENT_ID}} in .env file . . ."
+      silent: true
+    - cmd: echo "GW_CLIENT_ID={{.CLIENT_ID}}" > .env
+      silent: true
+    - cmd: echo "GW_CLIENT_SECRET={{.CLIENT_SECRET}}" >> .env
+      silent: true
     vars:
       CLIENT_ID: 
         sh: terraform output -raw SELF_HOSTED_GW_CLIENT_ID
       END_DATE: 
         sh: date -d "+10 days" --utc +%Y-%m-%dT%H:%M:%SZ
+      CLIENT_SECRET:
+        sh: az ad app credential reset --id {{.CLIENT_ID}} --end-date {{.END_DATE}} --query password -o tsv --only-show-errors
 
   gateway:
     desc: Outputs the self-hosted gateway connection details
     cmds:
-    - bash ./scripts/create-self-hosted-gateway.sh {{.SUBSCRIPTION_ID}} {{.RG}} {{.APIM_NAME}} {{.GW_LOCATION}}
+    - bash ./scripts/create-self-hosted-gateway.sh {{.SUBSCRIPTION_ID}} {{.RG}} {{.APIM_NAME}} {{.GW_LOCATION}} {{.SELF_HOSTED_GW_NAME}}
     vars:
       APIM_NAME: 
         sh: terraform output -raw APIM_NAME
@@ -65,6 +73,26 @@ tasks:
         sh: terraform output -raw APP_RESOURCE_GROUP
       SUBSCRIPTION_ID:
         sh: terraform output -raw SUBSCRIPTION_ID
+      SELF_HOSTED_GW_NAME:
+        sh: terraform output -raw SELF_HOSTED_GW_NAME
+  
+  deploy:
+    desc: Deploys the API to the API Management instance
+    cmds:
+    - export APIM_NAME="{{.APIM_NAME}}" ;
+      export GW_CLIENT_ID="{{.GW_CLIENT_ID}}" ;
+      export GW_CLIENT_SECRET="{{.GW_CLIENT_SECRET}}" ;
+      export AZURE_TENANT_ID="{{.AZURE_TENANT_ID}}" ;
+      export SELF_HOSTED_GW_NAME="{{.SELF_HOSTED_GW_NAME}}" ;
+      envsubst < deploy/self-host-gateway.yaml.tmpl > deploy/self-host-gateway.yaml 
+    - kubectl apply -f deploy/self-host-gateway.yaml #Deploys to the default namespace. Should change namespace with -n <namespace>
+    vars:
+      APIM_NAME: 
+        sh: terraform output -raw APIM_NAME
+      AZURE_TENANT_ID:
+        sh: terraform output -raw AZURE_TENANT_ID
+      SELF_HOSTED_GW_NAME:
+        sh: terraform output -raw SELF_HOSTED_GW_NAME
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform

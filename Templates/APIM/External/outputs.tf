@@ -3,6 +3,11 @@ output "SUBSCRIPTION_ID" {
   sensitive = false
 }
 
+output "AZURE_TENANT_ID" {
+  value     = data.azurerm_subscription.current.tenant_id
+  sensitive = false
+}
+
 output "APP_NAME" {
   value     = local.resource_name
   sensitive = false
@@ -10,6 +15,11 @@ output "APP_NAME" {
 
 output "APIM_NAME" {
   value     = azurerm_api_management.this.name
+  sensitive = false
+}
+
+output "SELF_HOSTED_GW_NAME" {
+  value     = "${azurerm_api_management.this.name}-sgw"
   sensitive = false
 }
 

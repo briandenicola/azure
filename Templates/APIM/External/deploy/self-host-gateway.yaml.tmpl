@@ -1,0 +1,107 @@
+---
+# The following should be ported over to a Azure KeyVault Secret Provider or similar solution
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${SELF_HOSTED_GW_NAME}-config
+  labels:
+    app: ${SELF_HOSTED_GW_NAME}
+data:
+  config.service.endpoint: "${APIM_NAME}.configuration.azure-api.net"
+  config.service.auth: azureAdApp 
+  config.service.auth.azureAd.authority: "https://login.microsoftonline.com"  
+  config.service.auth.azureAd.tenantId: "${AZURE_TENANT_ID}" 
+  config.service.auth.azureAd.clientId: "${GW_CLIENT_ID}" 
+  config.service.auth.azureAd.clientSecret: "${GW_CLIENT_SECRET}"
+  gateway.name: ${SELF_HOSTED_GW_NAME}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${SELF_HOSTED_GW_NAME}
+  labels:
+    app: ${SELF_HOSTED_GW_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${SELF_HOSTED_GW_NAME}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 25%
+  template:
+    metadata:
+      labels:
+        app: ${SELF_HOSTED_GW_NAME}
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: ${SELF_HOSTED_GW_NAME}
+        image: mcr.microsoft.com/azure-api-management/gateway:v2
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8081
+        - name: rate-limit-dc
+          protocol: UDP
+          containerPort: 4290
+        - name: dc-heartbeat
+          protocol: UDP
+          containerPort: 4291
+        readinessProbe:
+          httpGet:
+            path: /status-0123456789abcdef
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        envFrom:
+        - configMapRef:
+            name: ${SELF_HOSTED_GW_NAME}-config $
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${SELF_HOSTED_GW_NAME}-svc
+  labels:
+    app: ${SELF_HOSTED_GW_NAME}
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  - name: https
+    port: 443
+    targetPort: 8081
+  selector:
+    app: ${SELF_HOSTED_GW_NAME}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${SELF_HOSTED_GW_NAME}-instance-discovery
+  labels:
+    app: ${SELF_HOSTED_GW_NAME}
+  annotations:
+    azure.apim.kubernetes.io/notes: "Headless service being used for instance discovery of self-hosted gateway"
+spec:
+  clusterIP: None
+  type: ClusterIP
+  ports:
+  - name: rate-limit-discovery
+    port: 4290
+    targetPort: rate-limit-dc
+    protocol: UDP
+  - name: discovery-heartbeat
+    port: 4291
+    targetPort: dc-heartbeat
+    protocol: UDP
+  selector:
+    app: ${SELF_HOSTED_GW_NAME}
