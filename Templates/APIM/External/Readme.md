@@ -154,3 +154,16 @@ thrush-54085-apim-sgw-55954c5784-skcg5   1/1     Running   0          75s
 ![./assets/public.png](./assets/gateway-2.png)
 ***
 ![./assets/public.png](./assets/gateway-3.png)
+
+## 4. Validate Deployment
+```bash
+➜  External git:(main) task down
+task: [down] az ad sp delete --id 687dd301-b752-4dcb-8941-b7fb4fa8fb6e --no-wait  || true
+Command ran in 1.052 seconds (init: 0.250, invoke: 0.802)
+task: [down] az group list --tag Application="Azure External API Management Demo" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose --no-wait -n || true
+az group delete -y --verbose --no-wait -n thrush-54085_rg
+Command ran in 2.091 seconds (init: 0.233, invoke: 1.858)
+az group delete -y --verbose --no-wait -n thrush-54085-monitor_rg
+Command ran in 3.461 seconds (init: 0.224, invoke: 3.237)
+task: [down] rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true
+```
