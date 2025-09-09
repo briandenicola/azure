@@ -1,0 +1,11 @@
+resource "azurerm_resource_group" "this" {
+  name                  = "${local.resource_name}-infra_rg"
+  location              = var.location
+  tags                  = {
+    Application         = var.tags
+    DeployedOn          = timestamp()
+    AppName             = local.resource_name
+    Tier                = "Azure Virtual Network; Private DNS Zone; Private Endpoints"
+  }
+}
+
