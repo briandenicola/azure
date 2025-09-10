@@ -71,7 +71,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 .DS_Store
-Templates/APIM/Internal/.env
-Templates/APIM/External/.env
-Templates/APIM/External/deploy/self-host-gateway.yaml
-Templates/APIM/MultiRegion/.env
+.env
+Templates/APIM/internal/.env
+Templates/APIM/self-hosted-gateway/.env
+Templates/APIM/self-hosted-gateway/deploy/self-host-gateway.yaml
+Templates/APIM/multi-region/.env
