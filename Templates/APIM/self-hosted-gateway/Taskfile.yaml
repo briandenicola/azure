@@ -77,7 +77,7 @@ tasks:
         sh: terraform output -raw SELF_HOSTED_GW_NAME
   
   deploy:
-    desc: Deploys the API to the API Management instance
+    desc: Deploys the gateway to the AKS cluster
     cmds:
     - export APIM_NAME="{{.APIM_NAME}}" ;
       export GW_CLIENT_ID="{{.GW_CLIENT_ID}}" ;
