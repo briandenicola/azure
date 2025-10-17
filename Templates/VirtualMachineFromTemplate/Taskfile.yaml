@@ -1,0 +1,48 @@
+version: '3'
+
+vars:
+  DEFAULT_REGION: 'southcentralus'
+  TYPE: Linux
+  TAG: "Azure {{.TYPE}} Virtual Machine"
+    
+tasks:
+  default:
+    cmds:
+    - task --list 
+
+  up:
+    desc: Builds an {{.TAG}}
+    cmds:
+    - task: init
+    - task: apply
+
+  init: 
+    desc: Initializes Terraform
+    cmds:
+    - terraform workspace new {{.WORKSPACE}} || true
+    - terraform workspace select {{.WORKSPACE}}
+    - terraform init
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+      WORKSPACE: '{{.REGION}}-{{.TYPE}}'
+
+  apply: 
+    desc: Applies Terraform configuration
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "tags={{.TAG}}" -var-file="{{.TYPE}}.tfvars" 
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  down:
+    desc: Destroys all Azure resources and cleans up Terraform workspace
+    cmds:
+    - az group list --tag Application="{{.TAG}}" --query "[?location=='{{.REGION}}'].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+    - rm -rf terraform.tfstate.d/{{.WORKSPACE}} || true
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+      WORKSPACE: '{{.REGION}}-{{.TYPE}}'
+
+  clean:
+    desc: Cleans up Terraform providers
+    cmds:
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true
