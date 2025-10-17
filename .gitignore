@@ -76,3 +76,5 @@ Templates/APIM/internal/.env
 Templates/APIM/self-hosted-gateway/.env
 Templates/APIM/self-hosted-gateway/deploy/self-host-gateway.yaml
 Templates/APIM/multi-region/.env
+Templates/VirtualMachineFromTemplate/linux.tfvars
+Templates/VirtualMachineFromTemplate/Linux.tfvars
