@@ -1,13 +1,20 @@
 version: '3'
 
+dotenv: 
+  - .env
+
+vars:
+  TITLE: Internal ASEv3-Internal Demo
+  DEFAULT_REGION: canadacentral
+
 tasks:
   up:
-    desc: Builds end to end an ASEv3 Internal environment
+    desc: Builds {{.TITLE}} environment
     cmds:
     - task: init
     - task: apply
     vars:
-      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
 
   init: 
     desc: Initializes Terraform
@@ -16,27 +23,27 @@ tasks:
     - terraform workspace select {{.REGION}}
     - terraform init
     vars:
-      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
 
   apply: 
     desc: Applies Terraform configuration
     cmds:
-    - terraform apply -auto-approve -var "region={{.REGION}}"
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "tags={{.TITLE}}"
     vars:
-      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
 
   plan:
     desc: Reviews Terraform plan
     cmds:
-    - terraform plan -var "region={{.REGION}}"
+    - terraform plan -var "region={{.REGION}}"    -var "tags={{.TITLE}}"
     vars:
-      REGION: '{{default "southcentralus" .CLI_ARGS}}'
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
     
   down:
     desc: Destroys all Azure resources and cleans up terraform
     cmds:
+    - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
     -  rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
-    - az group delete -n {{.RG}} --yes --no-wait || true
     vars:
       RG: 
         sh: terraform output -raw ASE_RESOURCE_GROUP

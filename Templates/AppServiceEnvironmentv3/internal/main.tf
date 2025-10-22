@@ -33,8 +33,8 @@ resource "azurerm_resource_group" "this" {
   location = local.location
 
   tags = {
-    Application = "Logic App Standard"
-    Components  = "ase; logic apps;"
+    Application = var.tags
+    Components  = "ApplicationServiceEnvironment (Internal); Windows App Service Plan; Windows App Service; Linux App Service Plan; Linux App Service"
     DeployedOn  = timestamp()
   }
 }
