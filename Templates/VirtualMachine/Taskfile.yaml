@@ -2,7 +2,7 @@ version: '3'
 
 vars:
   DEFAULT_REGION: 'northcentralus'
-  TYPE: Linux
+  TYPE: Windows
   TAG: "Azure {{.TYPE}} Virtual Machine"
     
 tasks:

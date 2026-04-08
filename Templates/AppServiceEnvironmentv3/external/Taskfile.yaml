@@ -1,0 +1,49 @@
+version: '3'
+
+dotenv: 
+  - .env
+
+vars:
+  TITLE: External ASEv3 Demo
+  DEFAULT_REGION: canadacentral
+
+tasks:
+  up:
+    desc: Builds {{.TITLE}} environment
+    cmds:
+    - task: init
+    - task: apply
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  init: 
+    desc: Initializes Terraform
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  apply: 
+    desc: Applies Terraform configuration
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "tags={{.TITLE}}"
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  plan:
+    desc: Reviews Terraform plan
+    cmds:
+    - terraform plan -var "region={{.REGION}}"    -var "tags={{.TITLE}}"
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+    
+  down:
+    desc: Destroys all Azure resources and cleans up terraform
+    cmds:
+    - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+    -  rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    vars:
+      RG: 
+        sh: terraform output -raw ASE_RESOURCE_GROUP
