@@ -1,0 +1,68 @@
+version: '3'
+
+dotenv:
+  - .env
+
+vars:
+  TITLE: Flex Consumption Private Demo
+  DEFAULT_REGION: eastus2
+
+tasks:
+  default:
+    cmds:
+    - task --list 
+    
+  up:
+    desc: Builds {{.TITLE}} environment (bootstraps the storage account open, then seals it back to fully private)
+    cmds:
+    - task: init
+    - task: bootstrap
+    - task: lockdown
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  init:
+    desc: Initializes Terraform
+    cmds:
+    - terraform workspace new {{.REGION}} || true
+    - terraform workspace select {{.REGION}}
+    - terraform init
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  apply:
+    desc: Applies Terraform configuration
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var 'tags={"Application":"{{.TITLE}}"}'
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  bootstrap:
+    desc: Applies with the storage account temporarily opened to the deployer's own IP, so Terraform can create the deployment container
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "bootstrap=true" -var 'tags={"Application":"{{.TITLE}}"}'
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  lockdown:
+    desc: Re-applies with bootstrap=false to seal the storage account back to fully private
+    cmds:
+    - terraform apply -auto-approve -var "region={{.REGION}}" -var "bootstrap=false" -var 'tags={"Application":"{{.TITLE}}"}'
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  plan:
+    desc: Reviews Terraform plan
+    cmds:
+    - terraform plan -var "region={{.REGION}}" -var 'tags={"Application":"{{.TITLE}}"}'
+    vars:
+      REGION: '{{default .DEFAULT_REGION .CLI_ARGS}}'
+
+  down:
+    desc: Destroys all Azure resources and cleans up terraform
+    cmds:
+    - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+    - rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info
+    vars:
+      RG:
+        sh: terraform output -raw RESOURCE_GROUP
