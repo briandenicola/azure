@@ -20,10 +20,9 @@ resource "azurerm_function_app_flex_consumption" "this" {
   location            = azurerm_resource_group.this.location
   service_plan_id     = azurerm_service_plan.this.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = "${azurerm_storage_account.this.primary_blob_endpoint}${azurerm_storage_container.deployments.name}"
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.this.id
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = "${azurerm_storage_account.this.primary_blob_endpoint}${azurerm_storage_container.deployments.name}"
+  storage_authentication_type = "SystemAssignedIdentity"
 
   runtime_name    = var.runtime_name
   runtime_version = var.runtime_version
@@ -39,9 +38,17 @@ resource "azurerm_function_app_flex_consumption" "this" {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.this.id]
   }
-
   site_config {
     application_insights_connection_string = var.enable_application_insights ? azurerm_application_insights.this[0].connection_string : null
+
+  }
+
+  app_settings = {
+    AzureWebJobsStorage__accountName     =  local.storage_name
+    AzureWebJobsStorage__credential      = "managedidentity"
+    AzureWebJobsStorage__clientId        = azurerm_user_assigned_identity.this.client_id
+    AzureWebJobsStorage__queueServiceUri = azurerm_storage_account.this.primary_queue_endpoint
+    AzureWebJobsStorage__blobServiceUri  = azurerm_storage_account.this.primary_blob_endpoint
   }
 
   depends_on = [
