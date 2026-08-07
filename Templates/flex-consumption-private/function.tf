@@ -36,7 +36,7 @@ resource "azurerm_function_app_flex_consumption" "this" {
   https_only                    = true
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.this.id]
   }
 
@@ -46,7 +46,8 @@ resource "azurerm_function_app_flex_consumption" "this" {
 
   depends_on = [
     azurerm_private_endpoint.storage_blob,
-    azurerm_role_assignment.function_storage_blob_owner,
+    azurerm_role_assignment.function_user_assigned_storage_blob_owner,
+    azurerm_role_assignment.function_user_assigned_storage_queue_owner,
   ]
 }
 

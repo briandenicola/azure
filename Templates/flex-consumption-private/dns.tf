@@ -1,6 +1,7 @@
 locals {
   private_dns_zones = {
     blob  = "privatelink.blob.core.windows.net"
+    queue = "privatelink.queue.core.windows.net"
     sites = "privatelink.azurewebsites.net"
   }
 }
