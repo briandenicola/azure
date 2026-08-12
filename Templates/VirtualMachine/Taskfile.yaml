@@ -36,7 +36,7 @@ tasks:
   password:
     desc: Outputs the password for the VM if the VM is Windows
     cmds:
-    - terraform output -raw WINDOWS_ADMIN_PASSWORD
+    - terraform output -raw WINDOWS_ADMIN_PASSWORD | xclip -selection clipboard
 
   down:
     desc: Destroys all Azure resources and cleans up Terraform workspace

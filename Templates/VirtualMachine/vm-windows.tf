@@ -6,6 +6,7 @@ resource "azurerm_managed_disk" "this" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "127"
+  zone                 = local.zone
 }
 
 resource "azurerm_windows_virtual_machine" "this" {
@@ -49,7 +50,7 @@ resource "azurerm_windows_virtual_machine" "this" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2022-datacenter-azure-edition-hotpatch-smalldisk"
+    sku       = "2025-datacenter-azure-edition-smalldisk"
     version   = "latest"
   }
 }
